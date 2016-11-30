@@ -25,7 +25,14 @@ RBF_Func::~RBF_Func()
 
 float RBF_Func::func(float x, float y, float z)
 {
+	RBF_BBox_Iter boxI = mBBoxList.begin();
+	for (; boxI < mBBoxList.end(); boxI++)
+	{
+		if (x > (*boxI)->xMin && x < (*boxI)->xMax)
+			return bBoxFunc(*boxI, x, y, z);
+	}
 
+	throw NoSuitBoxError();
 }
 
 void RBF_Func::initPoints(const std::vector<vec3> & points)
@@ -77,6 +84,16 @@ void RBF_Func::cutBBox()
 }
 
 void RBF_Func::initFunc()
+{
+
+}
+
+float RBF_Func::bBoxFunc(const BoundingBox & box, float x, float y, float z)
+{
+
+}
+
+float RBF_Func::bBoxFunc(const BoundingBox * box, float x, float y, float z)
 {
 
 }

@@ -17,7 +17,7 @@ public:
 	virtual ~PC_Mesh();
 
 private:
-	float getValue(float x, float y, float z);
+	inline float getValue(float x, float y, float z);
 };
 
 template <unsigned int N>
@@ -42,7 +42,10 @@ PC_Mesh<N>::~PC_Mesh()
 template <unsigned int N>
 float PC_Mesh<N>::getValue(float x, float y, float z)
 { 
+	float posX, posY, posZ;
+	getPos(x, y, z, posX, posY, posZ);
 
+	return func->func(posX, posY, posZ);
 }
 
 #endif // !__PC_MESH_H__

@@ -86,7 +86,7 @@ private:
 	inline void			getPos(const vec3I & point, vec3 & pos);
 	inline void			getPos(const vec3I & lastPos1, const vec3I & lastPos2, vec3 & newPos);
 
-	virtual float getValue(int x, int y, int z);
+	inline virtual float getValue(int x, int y, int z);
 };
 
 template <unsigned int N>
