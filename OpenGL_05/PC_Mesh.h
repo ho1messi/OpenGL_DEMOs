@@ -5,7 +5,7 @@
 #include "MC_Mesh_Base.h"
 
 template <unsigned int N>
-class PC_Mesh : public MC_Mesh_Base<N>
+class PC_Mesh : public MC_Mesh_Base
 {
 private:
 	RBF_Func func;

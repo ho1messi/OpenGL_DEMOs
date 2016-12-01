@@ -81,8 +81,8 @@ GLuint EBO[2];
 Shader *shader;
 HES_Mesh *HESmesh;
 HES_MeshSubdivition *HESmeshSubdivition;
-MC_Mesh<NUM_OF_CUBES> *MCmesh;
-PC_Mesh<NUM_OF_CUBES> *PCmesh;
+MC_Mesh *MCmesh;
+//PC_Mesh *PCmesh;
 
 float f(float x, float y, float z)
 {
@@ -232,9 +232,9 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 
 void drawInit()
 {	
-	MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f);
+	MCmesh = new MC_Mesh(NUM_OF_CUBES, &f);
 	//PCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices_test.txt");
-	HESmesh = PCmesh->getMesh();
+	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
 	HESmesh->setupMesh();
