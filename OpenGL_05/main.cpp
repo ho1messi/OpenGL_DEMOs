@@ -46,7 +46,7 @@ inline float f2(float x, float y, float z);
 inline float f3(float x, float y, float z);
 inline float f4(float x, float y, float z);
 
-const int NUM_OF_CUBES = 20;
+const int NUM_OF_CUBES = 10;
 
 int screenWidth = 1366;
 int screenHeight = 768;
@@ -230,8 +230,8 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 
 void drawInit()
 {	
-	MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f4);
-	//MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices1.txt");
+	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f1);
+	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices0.txt");
 	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
