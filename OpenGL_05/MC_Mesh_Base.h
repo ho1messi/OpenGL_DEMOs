@@ -35,7 +35,6 @@ typedef MC_Vertex_Pair_List::iterator			MC_Vertex_Pair_List_Iter;
 extern const int edgeTable[12][6];
 extern const int triangleTable[256][16];
 
-
 inline void multiply(float & x, float & y, float & z, float p);
 
 template <unsigned int N>
