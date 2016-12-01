@@ -5,7 +5,7 @@
 #include "MC_Mesh_Base.h"
 
 template <unsigned int N>
-class PC_Mesh : public MC_Mesh_Base
+class PC_Mesh : public MC_Mesh_Base<N>
 {
 private:
 	RBF_Func func;
@@ -16,13 +16,7 @@ public:
 	virtual ~PC_Mesh();
 
 protected:
-	virtual float getValue(int x, int y, int z)
-	{
-		float posX, posY, posZ;
-		getPos(x, y, z, posX, posY, posZ);
-
-		return func.func(posX, posY, posZ);
-	}
+	virtual float getValue(int x, int y, int z);
 };
 
 template <unsigned int N>
@@ -43,7 +37,7 @@ PC_Mesh<N>::~PC_Mesh()
 {
 
 }
-/*
+
 template <unsigned int N>
 float PC_Mesh<N>::getValue(int x, int y, int z)
 { 
@@ -52,6 +46,6 @@ float PC_Mesh<N>::getValue(int x, int y, int z)
 
 	return func.func(posX, posY, posZ);
 }
-*/
+
 #endif // !__PC_MESH_H__
 
