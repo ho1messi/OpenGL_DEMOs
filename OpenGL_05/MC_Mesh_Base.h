@@ -59,12 +59,12 @@ private:
 
 public:
 	MC_Mesh_Base();
-	MC_Mesh_Base( float(*f)(float, float, float) );
 	virtual ~MC_Mesh_Base();
 
 	HES_Mesh * getMesh();
 
 protected:
+	void loadMesh();
 	void initPoints();
 	void calculateNewTriangles();
 	inline void checkCube(int x, int y, int z);
@@ -89,24 +89,9 @@ protected:
 
 template <unsigned int N>
 MC_Mesh_Base<N>::MC_Mesh_Base() :
-	distance(2.0f / N)
+	distance(2.0f / N), mesh(NULL)
 {
-	mesh = new HES_Mesh();
 
-	initPoints();
-	calculateNewTriangles();
-	createNewMesh();
-}
-
-template <unsigned int N>
-MC_Mesh_Base<N>::MC_Mesh_Base(float(*f)(float, float, float)) :
-	distance(2.0f / N)
-{
-	mesh = new HES_Mesh();
-
-	initPoints();
-	calculateNewTriangles();
-	createNewMesh();
 }
 
 template <unsigned int N>
@@ -119,7 +104,18 @@ MC_Mesh_Base<N>::~MC_Mesh_Base()
 template <unsigned int N>
 HES_Mesh * MC_Mesh_Base<N>::getMesh()
 {
+	loadMesh();
 	return this->mesh;
+}
+
+template <unsigned int N>
+void MC_Mesh_Base<N>::loadMesh()
+{
+	mesh = new HES_Mesh();
+
+	initPoints();
+	calculateNewTriangles();
+	createNewMesh();
 }
 
 template <unsigned int N>
@@ -331,16 +327,7 @@ void MC_Mesh_Base<N>::getPos(const vec3I & lastPos1, const vec3I & lastPos2, vec
 
 	newPos = (tempPos1 * p2 + tempPos2 * p1) / (p1 + p2);
 }
-/*
-template <unsigned int N>
-float MC_Mesh_Base<N>::getValue(int x, int y, int z)
-{
-	float posX, posY, posZ;
-	getPos(x, y, z, posX, posY, posZ);
 
-	return f2(posX, posY, posZ);
-}
-*/
 void multiply(float & x, float & y, float & z, float p)
 {
 	x *= p;

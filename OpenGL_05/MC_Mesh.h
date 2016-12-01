@@ -25,7 +25,7 @@ MC_Mesh<N>::MC_Mesh() : MC_Mesh_Base()
 }
 
 template <unsigned int N>
-MC_Mesh<N>::MC_Mesh(float(*f)(float, float, float))
+MC_Mesh<N>::MC_Mesh(float(*f)(float, float, float)) : MC_Mesh_Base()
 {
 	mF = f;
 }
