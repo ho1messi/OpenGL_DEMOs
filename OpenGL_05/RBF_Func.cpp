@@ -199,8 +199,6 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 
 	Eigen::VectorXf w = matrix.householderQr().solve(d);
 
-	cout << w << endl;
-
 	pointI_i = box->points.begin();
 	for (int i = 0; i < numOfPoints; i++, pointI_i++)
 		(*pointI_i)->w = w(i);
