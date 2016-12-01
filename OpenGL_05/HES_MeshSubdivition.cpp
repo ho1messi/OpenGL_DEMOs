@@ -17,7 +17,10 @@ HES_MeshSubdivition::~HES_MeshSubdivition()
 {
 	HES_Mesh_Iterator meshI = mHESMeshList.begin();
 	for (; meshI < mHESMeshList.end(); meshI++)
-		delete (*meshI);
+	{
+		if (*meshI)
+			delete (*meshI);
+	}
 }
 
 void HES_MeshSubdivition::setMesh(HES_Mesh * HESmesh)

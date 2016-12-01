@@ -137,6 +137,7 @@
     <ClInclude Include="HES_Mesh.h" />
     <ClInclude Include="HES_MeshSubdivition.h" />
     <ClInclude Include="MC_Mesh.h" />
+    <ClInclude Include="MC_Mesh_Base.h" />
     <ClInclude Include="PC_Mesh.h" />
     <ClInclude Include="RBF_Func.h" />
     <ClInclude Include="shader.h" />

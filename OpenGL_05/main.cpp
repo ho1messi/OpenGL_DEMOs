@@ -233,12 +233,12 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 void drawInit()
 {	
 	MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f);
-	HESmesh = MCmesh->getMesh();
+	//PCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices_test.txt");
+	HESmesh = PCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
 	HESmesh->setupMesh();
 
-	PCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices1.txt");
 	
 	shader = new Shader("Resource\\vShader.glsl", "Resource\\fShader.glsl");
 }

@@ -50,6 +50,9 @@
     <ClInclude Include="RBF_Func.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MC_Mesh_Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resource\fShader.glsl">
