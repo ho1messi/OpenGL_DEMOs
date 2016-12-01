@@ -30,9 +30,6 @@
     <ClCompile Include="RBF_Func.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="MC_Mesh_Base.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
