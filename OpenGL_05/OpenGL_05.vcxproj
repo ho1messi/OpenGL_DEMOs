@@ -130,6 +130,7 @@
     <ClCompile Include="HES_Mesh.cpp" />
     <ClCompile Include="HES_MeshSubdivition.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MC_Mesh_Base.cpp" />
     <ClCompile Include="RBF_Func.cpp" />
     <ClCompile Include="Table.cpp" />
   </ItemGroup>
