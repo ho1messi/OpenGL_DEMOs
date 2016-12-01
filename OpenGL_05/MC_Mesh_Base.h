@@ -37,11 +37,6 @@ extern const int triangleTable[256][16];
 
 
 inline void multiply(float & x, float & y, float & z, float p);
-inline float f1(float x, float y, float z);
-inline float f2(float x, float y, float z);
-inline float f3(float x, float y, float z);
-inline float f4(float x, float y, float z);
-
 
 template <unsigned int N>
 class MC_Mesh_Base
@@ -335,30 +330,6 @@ void multiply(float & x, float & y, float & z, float p)
 	z *= p;
 }
 
-float f1(float x, float y, float z)
-{
-	return x * x + y * y + z * z - 1.0f;
-}
 
-float f2(float x, float y, float z)
-{
-	multiply(x, y, z, 10.0f);
-	return x * x + y * y - z * z - 1.0f;
-}
-
-float f3(float x, float y, float z)
-{
-	multiply(x, y, z, 1.3f);
-	float temp = powf(x, 2.0f) + 2.25f * powf(z, 2.0f) + powf(y, 2.0f) - 1;
-	return powf(temp, 3.0f) - powf(x, 2) * powf(y, 3.0f)
-		- 0.1125f * powf(z, 2) * powf(y, 3.0f);
-}
-
-float f4(float x, float y, float z)
-{
-	multiply(x, y, z, 2.0f);
-	return powf(x * x + y * y - 3.0f, 3.0f)
-		+ powf(z * z * z - 2.0f, 2.0f);
-}
 
 #endif//__MC_MESH_BASE_H__

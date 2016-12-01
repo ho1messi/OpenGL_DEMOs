@@ -41,6 +41,11 @@ void drawInit();
 void draw();
 void deleteMeshs();
 
+inline float f1(float x, float y, float z);
+inline float f2(float x, float y, float z);
+inline float f3(float x, float y, float z);
+inline float f4(float x, float y, float z);
+
 const int NUM_OF_CUBES = 20;
 
 int screenWidth = 1366;
@@ -83,12 +88,6 @@ HES_Mesh *HESmesh;
 HES_MeshSubdivition *HESmeshSubdivition;
 MC_Mesh_Base<NUM_OF_CUBES> *MCmesh = NULL;
 
-float f(float x, float y, float z)
-{
-	multiply(x, y, z, 2.0f);
-	return powf(x * x + y * y - 3.0f, 3.0f)
-		+ powf(z * z * z - 2.0f, 2.0f);
-}
 
 int main()
 {
@@ -231,7 +230,7 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 
 void drawInit()
 {	
-	MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f);
+	MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f4);
 	//MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices1.txt");
 	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
@@ -320,4 +319,30 @@ void deleteMeshs()
 
 	if (shader)
 		delete shader;
+}
+
+float f1(float x, float y, float z)
+{
+	return x * x + y * y + z * z - 1.0f;
+}
+
+float f2(float x, float y, float z)
+{
+	multiply(x, y, z, 10.0f);
+	return x * x + y * y - z * z - 1.0f;
+}
+
+float f3(float x, float y, float z)
+{
+	multiply(x, y, z, 1.3f);
+	float temp = powf(x, 2.0f) + 2.25f * powf(z, 2.0f) + powf(y, 2.0f) - 1;
+	return powf(temp, 3.0f) - powf(x, 2) * powf(y, 3.0f)
+		- 0.1125f * powf(z, 2) * powf(y, 3.0f);
+}
+
+float f4(float x, float y, float z)
+{
+	multiply(x, y, z, 2.0f);
+	return powf(x * x + y * y - 3.0f, 3.0f)
+		+ powf(z * z * z - 2.0f, 2.0f);
 }
