@@ -41,12 +41,13 @@ void drawInit();
 void draw();
 void deleteMeshs();
 
+void multiply(float & x, float & y, float & z, float p);
 inline float f1(float x, float y, float z);
 inline float f2(float x, float y, float z);
 inline float f3(float x, float y, float z);
 inline float f4(float x, float y, float z);
 
-const int NUM_OF_CUBES = 10;
+const int NUM_OF_CUBES = 50;
 
 int screenWidth = 1366;
 int screenHeight = 768;
@@ -236,7 +237,6 @@ void drawInit()
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
 	HESmesh->setupMesh();
-
 	
 	shader = new Shader("Resource\\vShader.glsl", "Resource\\fShader.glsl");
 }
@@ -323,6 +323,7 @@ void deleteMeshs()
 
 float f1(float x, float y, float z)
 {
+	multiply(x, y, z, 1.5f);
 	return x * x + y * y + z * z - 1.0f;
 }
 
@@ -345,4 +346,11 @@ float f4(float x, float y, float z)
 	multiply(x, y, z, 2.0f);
 	return powf(x * x + y * y - 3.0f, 3.0f)
 		+ powf(z * z * z - 2.0f, 2.0f);
+}
+
+void multiply(float & x, float & y, float & z, float p)
+{
+	x *= p;
+	y *= p;
+	z *= p;
 }

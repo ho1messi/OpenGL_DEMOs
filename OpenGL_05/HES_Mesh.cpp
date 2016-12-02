@@ -255,6 +255,9 @@ void HES_Mesh::setupMesh()
 {
 	checkFlags();
 
+	if (mVertices.size() == 0)
+		return;
+
 	if (!glIsVertexArray(VAO))
 		glGenVertexArrays(1, &VAO);
 	if (!glIsBuffer(VBO))

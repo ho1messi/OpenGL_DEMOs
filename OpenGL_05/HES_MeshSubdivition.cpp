@@ -15,7 +15,7 @@ HES_MeshSubdivition::HES_MeshSubdivition(HES_Mesh * HESmesh) :
 
 HES_MeshSubdivition::~HES_MeshSubdivition()
 {
-	HES_Mesh_Iterator meshI = mHESMeshList.begin();
+	HES_Mesh_Iterator meshI = mHESMeshList.begin() + 1;
 	for (; meshI < mHESMeshList.end(); meshI++)
 	{
 		if (*meshI)
