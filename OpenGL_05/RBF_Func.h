@@ -21,6 +21,8 @@ struct BoundingBox
 	std::list<vec4 *> points;
 	float xMin;
 	float xMax;
+	float xMid;
+	float xHalfWidth;
 	float a;
 	float b;
 	float c;
@@ -33,12 +35,14 @@ typedef RBF_BBox_List::iterator RBF_BBox_Iter;
 const unsigned int P_INFINITY_F_BITMAP = 0x7F7FFFFF;
 const float INFINITY_F = *((float *)(&P_INFINITY_F_BITMAP));
 
+const float BOUNDING_BOX_THICK = 0.001f;
+
 class RBF_Func
 {
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 100;
+	static const int BBOX_MAX_POINTS = 400;
 
 public:
 	RBF_Func();
@@ -53,13 +57,15 @@ private:
 	void initBBox();
 	void initFunc();
 
-	inline void cutBBox(BoundingBox * box);
+	void cutBBox(BoundingBox * box);
+	void bBoxInfo();
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
 	
-	void bBoxPointsWeight(BoundingBox * box);
+	inline void bBoxPointsWeight(BoundingBox * box);
 
 	inline float bBoxFunc(BoundingBox & box, float x, float y, float z);
 	inline float bBoxFunc(BoundingBox * box, float x, float y, float z);
+	inline float bBoxFuncWeight(BoundingBox * box, float x);
 
 	inline static float vec3DisModuleCube(const vec4 * point1, const vec4 * point2);
 };

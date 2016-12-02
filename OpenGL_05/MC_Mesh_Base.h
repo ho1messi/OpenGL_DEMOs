@@ -35,8 +35,6 @@ typedef MC_Vertex_Pair_List::iterator			MC_Vertex_Pair_List_Iter;
 extern const int edgeTable[12][6];
 extern const int triangleTable[256][16];
 
-inline void multiply(float & x, float & y, float & z, float p);
-
 template <unsigned int N>
 class MC_Mesh_Base
 {
@@ -320,13 +318,6 @@ void MC_Mesh_Base<N>::getPos(const vec3I & lastPos1, const vec3I & lastPos2, vec
 	p2 = fabs(points[lastPos2.x][lastPos2.y][lastPos2.z]);
 
 	newPos = (tempPos1 * p2 + tempPos2 * p1) / (p1 + p2);
-}
-
-void multiply(float & x, float & y, float & z, float p)
-{
-	x *= p;
-	y *= p;
-	z *= p;
 }
 
 
