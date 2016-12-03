@@ -28,8 +28,18 @@ struct BoundingBox
 	float c;
 };
 
+struct PointAndNormal
+{
+	vec3 point;
+
+	// easy to multyply by vec4
+	vec4 Normal;
+};
+
 typedef std::list<BoundingBox *> RBF_BBox_List;
+typedef std::list<PointAndNormal *> RBF_PointNormal_List;
 typedef RBF_BBox_List::iterator RBF_BBox_Iter;
+typedef RBF_PointNormal_List::iterator RBF_PointNormal_Iter;
 
 // build the infinity float num from bitmap
 const unsigned int P_INFINITY_F_BITMAP = 0x7F7FFFFF;
@@ -53,16 +63,20 @@ public:
 	float func(float x, float y, float z);
 
 private:
-	BoundingBox * initPoints(std::vector<vec3> & points);
-	BoundingBox * loadPoints(const string & path);
-	void initBBox(BoundingBox * box);
+	RBF_PointNormal_List * initPoints(std::vector<vec3> & points);
+	RBF_PointNormal_List * loadPoints(const string & path);
+	void initBBox(RBF_PointNormal_List * pointNormals);
 	void initFunc();
 
+	BoundingBox * getBBox(RBF_PointNormal_List * pointNormals);
 	void cutBBox(BoundingBox * box);
-	void bBoxInfo(BoundingBox * box);
+	void getPointNormal(RBF_PointNormal_List * pointNormals);
+	void addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box, float pointDistance);
+
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
 	
 	inline void bBoxPointsWeight(BoundingBox * box);
+	inline void bBoxInfo(BoundingBox * box);
 
 	inline float bBoxFunc(BoundingBox & box, float x, float y, float z);
 	inline float bBoxFunc(BoundingBox * box, float x, float y, float z);
