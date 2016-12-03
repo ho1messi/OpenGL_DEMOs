@@ -35,7 +35,7 @@ typedef RBF_BBox_List::iterator RBF_BBox_Iter;
 const unsigned int P_INFINITY_F_BITMAP = 0x7F7FFFFF;
 const float INFINITY_F = *((float *)(&P_INFINITY_F_BITMAP));
 
-const float BOUNDING_BOX_THICK = 0.001f;
+const float BBOX_MIN_HALF_WIDTH = 0.001f;
 
 class RBF_Func
 {
@@ -58,7 +58,7 @@ private:
 	void initFunc();
 
 	void cutBBox(BoundingBox * box);
-	void bBoxInfo();
+	void bBoxInfo(BoundingBox * box);
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
 	
 	inline void bBoxPointsWeight(BoundingBox * box);

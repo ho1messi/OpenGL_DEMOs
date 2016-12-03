@@ -232,7 +232,7 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 void drawInit()
 {	
 	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f1);
-	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices0.txt");
+	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices2.txt");
 	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");

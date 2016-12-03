@@ -39,15 +39,23 @@ RBF_Func::~RBF_Func()
 // the final sectioned function
 float RBF_Func::func(float x, float y, float z)
 {
+	float value = 0.0f;
+	bool inBox = false;
 	RBF_BBox_Iter boxI = mBBoxList.begin();
 	for (; boxI != mBBoxList.end(); boxI++)
 	{
 		if (x >= (*boxI)->xMin && x < (*boxI)->xMax)
-			return bBoxFuncWeight(*boxI, x) * bBoxFunc(*boxI, x, y, z);
+		{
+			value += bBoxFuncWeight(*boxI, x) * bBoxFunc(*boxI, x, y, z);
+			inBox = true;
+		}
 	}
 
-	return 1.0f;
-	//throw NoSuitBoxError();
+	if (inBox)
+		return value;
+	else
+		return 1.0f;
+	//	throw NoSuitBoxError();
 }
 
 // load points from vector<vec3>
@@ -61,7 +69,7 @@ void RBF_Func::initPoints(const std::vector<vec3> & points)
 	std::vector<vec3>::iterator pointI;
 	for (; pointI < points.end(); pointI++)
 	{
-		//newPoint->w is Wn in RBF func
+		//newPoint->w is weight(Wn) in RBF func
 		newPoint = new vec4(*pointI, 1.0f);
 		mBBoxList.front()->points.push_back(newPoint);
 	}
@@ -85,7 +93,7 @@ void RBF_Func::loadPoints(const string & path)
 		ss.str(line);
 		ss.clear();
 
-		//newPoint->w is Wn in RBF func
+		//newPoint->w is weight(Wn) in RBF func
 		newPoint = new vec4();
 		ss >> newPoint->x >> newPoint->y >> newPoint->z;
 		mBBoxList.front()->points.push_back(newPoint);
@@ -108,13 +116,22 @@ void RBF_Func::initBBox()
 		if (xMax < (*pointI)->x)
 			xMax = (*pointI)->x;
 	}
-	mBBoxList.front()->xMax = xMax + BOUNDING_BOX_THICK;
-	mBBoxList.front()->xMin = xMin + BOUNDING_BOX_THICK;
+	mBBoxList.front()->xMax = xMax;
+	mBBoxList.front()->xMin = xMin;
+	bBoxInfo(mBBoxList.front());
 
 	cutBBox(*mBBoxList.begin());
-
-	bBoxInfo();
 	mBBoxList.sort(bBoxCmp);
+
+	RBF_BBox_Iter boxI1 = mBBoxList.begin();
+	RBF_BBox_Iter boxI2 = mBBoxList.begin();
+	boxI2++;
+	for (; boxI2 != mBBoxList.end(); boxI1++, boxI2++)
+		(*boxI1)->xMax = (*boxI2)->xMax;
+
+	boxI1 = mBBoxList.begin();
+	for (; boxI1 != mBBoxList.end(); boxI1++)
+		bBoxInfo(*boxI1);
 }
 
 void RBF_Func::initFunc()
@@ -128,7 +145,8 @@ void RBF_Func::initFunc()
 
 void RBF_Func::cutBBox(BoundingBox * box)
 {
-	if (box->points.size() < BBOX_MAX_POINTS)
+	if (box->points.size() < BBOX_MAX_POINTS
+		|| box->xHalfWidth < BBOX_MIN_HALF_WIDTH)
 		return;
 
 	BoundingBox *newBBox = new BoundingBox;
@@ -139,26 +157,22 @@ void RBF_Func::cutBBox(BoundingBox * box)
 	if (newBBox->points.size() > 0)
 	{
 		mBBoxList.push_back(newBBox);
+		bBoxInfo(mBBoxList.front());
 		cutBBox(newBBox);
 	}
 }
 
-void RBF_Func::bBoxInfo()
+void RBF_Func::bBoxInfo(BoundingBox * box)
 {
-	RBF_BBox_Iter boxI = mBBoxList.begin();
-	for (; boxI != mBBoxList.end(); boxI++)
-	{
-		(*boxI)->xMid = ((*boxI)->xMax + (*boxI)->xMin) / 2.0f;
-		(*boxI)->xHalfWidth = ((*boxI)->xMax - (*boxI)->xMin) / 2.0f;
-	}
+	box->xMid = (box->xMax + box->xMin) / 2.0f;
+	box->xHalfWidth = (box->xMax - box->xMin) / 2.0f;
 }
 
 void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
 {
 	float xMid = (box1->xMax + box1->xMin) / 2.0f;
 	box2->xMax = box1->xMax;
-	box2->xMin = xMid - BOUNDING_BOX_THICK;
-	box1->xMax = xMid + BOUNDING_BOX_THICK;
+	box2->xMin = box1->xMax = xMid;
 
 	std::list<vec4 *>::iterator pointI = box1->points.begin();
 	for (; pointI != box1->points.end(); )
@@ -206,8 +220,8 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 		d(i) = -1.0f;
 	}
 
-	//Eigen::VectorXf w = matrix.colPivHouseholderQr().solve(d);
-	Eigen::VectorXf w = matrix.fullPivLu().solve(d);
+	Eigen::VectorXf w = matrix.colPivHouseholderQr().solve(d);
+	//Eigen::VectorXf w = matrix.fullPivLu().solve(d);
 
 	pointI_i = box->points.begin();
 	for (int i = 0; i < numOfPoints; i++, pointI_i++)
@@ -260,5 +274,5 @@ float RBF_Func::vec3DisModuleCube(const vec4 * point1, const vec4 * point2)
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2)
 {
-	return box1->xMax > box2->xMax;
+	return box1->xMin < box2->xMin;
 }
