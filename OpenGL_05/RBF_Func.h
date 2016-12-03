@@ -35,14 +35,14 @@ typedef RBF_BBox_List::iterator RBF_BBox_Iter;
 const unsigned int P_INFINITY_F_BITMAP = 0x7F7FFFFF;
 const float INFINITY_F = *((float *)(&P_INFINITY_F_BITMAP));
 
-const float BBOX_MIN_HALF_WIDTH = 0.001f;
+const float BOUNDING_BOX_THICK = 0.001f;
 
 class RBF_Func
 {
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 200;
+	static const int BBOX_MAX_POINTS = 400;
 
 public:
 	RBF_Func();
@@ -52,14 +52,13 @@ public:
 	float func(float x, float y, float z);
 
 private:
-	BoundingBox * initPoints(const std::vector<vec3> & points);
-	BoundingBox * loadPoints(const string & path);
-	void initBBox(BoundingBox * box);
+	void initPoints(const std::vector<vec3> & points);
+	void loadPoints(const string & path);
+	void initBBox();
 	void initFunc();
 
 	void cutBBox(BoundingBox * box);
-	void bBoxInfo(BoundingBox * box);
-	void movBBoxPoints(BoundingBox * box1, BoundingBox * box2);
+	void bBoxInfo();
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
 	
 	inline void bBoxPointsWeight(BoundingBox * box);
