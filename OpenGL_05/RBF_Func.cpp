@@ -15,10 +15,10 @@ RBF_Func::RBF_Func() :
 }
 
 // init from vector<vec3>
-RBF_Func::RBF_Func(const std::vector<vec3> & points)
+RBF_Func::RBF_Func(std::vector<vec3> & points)
 {
-	initPoints(points);
-	initBBox();
+	BoundingBox *box = initPoints(points);
+	initBBox(box);
 	initFunc();
 }
 
@@ -26,8 +26,8 @@ RBF_Func::RBF_Func(const std::vector<vec3> & points)
 // format vector3
 RBF_Func::RBF_Func(const string & path)
 {
-	loadPoints(path.c_str());
-	initBBox();
+	BoundingBox *box = loadPoints(path.c_str());
+	initBBox(box);
 	initFunc();
 }
 
@@ -51,31 +51,31 @@ float RBF_Func::func(float x, float y, float z)
 }
 
 // load points from vector<vec3>
-void RBF_Func::initPoints(const std::vector<vec3> & points)
+BoundingBox * RBF_Func::initPoints(std::vector<vec3> & points)
 {
 	vec4 *newPoint;
-	mBBoxList.push_back(new BoundingBox);
-	mBBoxList.front()->xMax = INFINITY_F;
-	mBBoxList.front()->xMin = -INFINITY_F;
+	BoundingBox * newBox = new BoundingBox;
 
-	std::vector<vec3>::iterator pointI;
+	std::vector<vec3>::iterator pointI = points.begin();
 	for (; pointI < points.end(); pointI++)
 	{
 		//newPoint->w is Wn in RBF func
 		newPoint = new vec4(*pointI, 1.0f);
-		mBBoxList.front()->points.push_back(newPoint);
+		newBox->points.push_back(newPoint);
 	}
+
+	return newBox;
 }
 
 // load points from file
 // format vector3
-void RBF_Func::loadPoints(const string & path)
+BoundingBox * RBF_Func::loadPoints(const string & path)
 {
 	std::ifstream fileIn(path);
 	std::stringstream ss;
 	string line;
 	vec4 *newPoint;
-	mBBoxList.push_back(new BoundingBox);
+	BoundingBox * newBox = new BoundingBox;
 
 	while (!fileIn.eof())
 	{
@@ -88,33 +88,39 @@ void RBF_Func::loadPoints(const string & path)
 		//newPoint->w is Wn in RBF func
 		newPoint = new vec4();
 		ss >> newPoint->x >> newPoint->y >> newPoint->z;
-		mBBoxList.front()->points.push_back(newPoint);
+		newBox->points.push_back(newPoint);
 	}
 
 	fileIn.close();
+
+	return newBox;
 }
 
 // make num of points in one bounding box less than BBOX_MAX_POINTS
-void RBF_Func::initBBox()
+void RBF_Func::initBBox(BoundingBox * box)
 {
-	float xMin = INFINITY_F;
-	float xMax = -INFINITY_F;
+	box->xMin = INFINITY_F;
+	box->xMax = -INFINITY_F;
 
-	std::list<vec4 *>::iterator pointI = mBBoxList.front()->points.begin();
-	for (; pointI != mBBoxList.front()->points.end(); pointI++)
+	std::list<vec4 *>::iterator pointI = box->points.begin();
+	for (; pointI != box->points.end(); pointI++)
 	{
-		if (xMin > (*pointI)->x)
-			xMin = (*pointI)->x;
-		if (xMax < (*pointI)->x)
-			xMax = (*pointI)->x;
+		if (box->xMin > (*pointI)->x)
+			box->xMin = (*pointI)->x;
+		if (box->xMax < (*pointI)->x)
+			box->xMax = (*pointI)->x;
 	}
-	mBBoxList.front()->xMax = xMax + BOUNDING_BOX_THICK;
-	mBBoxList.front()->xMin = xMin + BOUNDING_BOX_THICK;
+	box->xMax += BOUNDING_BOX_THICK;
+	box->xMin -= BOUNDING_BOX_THICK;
+	bBoxInfo(box);
 
-	cutBBox(*mBBoxList.begin());
+	cutBBox(box);
 
-	bBoxInfo();
 	mBBoxList.sort(bBoxCmp);
+
+	RBF_BBox_Iter boxI = mBBoxList.begin();
+	for (; boxI != mBBoxList.end(); boxI++)
+		bBoxInfo(*boxI);
 }
 
 void RBF_Func::initFunc()
@@ -128,29 +134,28 @@ void RBF_Func::initFunc()
 
 void RBF_Func::cutBBox(BoundingBox * box)
 {
-	if (box->points.size() < BBOX_MAX_POINTS)
+	if (box->points.size() < BBOX_MAX_POINTS
+		|| box->xHalfWidth < BBOX_MIN_HALF_WIDTH)
+	{
+		if (box->points.size() > 0)
+		{
+			mBBoxList.push_back(box);
+		}
 		return;
+	}
 
 	BoundingBox *newBBox = new BoundingBox;
 	divBBoxByX(box, newBBox);
+	bBoxInfo(newBBox);
 
 	cutBBox(box);
-	
-	if (newBBox->points.size() > 0)
-	{
-		mBBoxList.push_back(newBBox);
-		cutBBox(newBBox);
-	}
+	cutBBox(newBBox);
 }
 
-void RBF_Func::bBoxInfo()
+void RBF_Func::bBoxInfo(BoundingBox * box)
 {
-	RBF_BBox_Iter boxI = mBBoxList.begin();
-	for (; boxI != mBBoxList.end(); boxI++)
-	{
-		(*boxI)->xMid = ((*boxI)->xMax + (*boxI)->xMin) / 2.0f;
-		(*boxI)->xHalfWidth = ((*boxI)->xMax - (*boxI)->xMin) / 2.0f;
-	}
+	box->xMid = (box->xMax + box->xMin) / 2.0f;
+	box->xHalfWidth = (box->xMax - box->xMin) / 2.0f;
 }
 
 void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
