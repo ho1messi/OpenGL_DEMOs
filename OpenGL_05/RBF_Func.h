@@ -42,7 +42,7 @@ class RBF_Func
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 400;
+	static const int BBOX_MAX_POINTS = 200;
 
 public:
 	RBF_Func();
@@ -52,13 +52,14 @@ public:
 	float func(float x, float y, float z);
 
 private:
-	void initPoints(const std::vector<vec3> & points);
-	void loadPoints(const string & path);
-	void initBBox();
+	BoundingBox * initPoints(const std::vector<vec3> & points);
+	BoundingBox * loadPoints(const string & path);
+	void initBBox(BoundingBox * box);
 	void initFunc();
 
 	void cutBBox(BoundingBox * box);
 	void bBoxInfo(BoundingBox * box);
+	void movBBoxPoints(BoundingBox * box1, BoundingBox * box2);
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
 	
 	inline void bBoxPointsWeight(BoundingBox * box);
