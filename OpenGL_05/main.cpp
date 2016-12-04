@@ -231,7 +231,7 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 
 void drawInit()
 {	
-	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f1);
+	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f3);
 	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices0.txt");
 	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);

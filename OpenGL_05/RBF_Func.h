@@ -53,7 +53,7 @@ class RBF_Func
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 200;
+	static const int BBOX_MAX_POINTS = 500;
 
 public:
 	RBF_Func();
@@ -70,7 +70,7 @@ private:
 
 	BoundingBox * getBBox(RBF_PointNormal_List * pointNormals);
 	void cutBBox(BoundingBox * box);
-	void getPointNormal(RBF_PointNormal_List * pointNormals);
+	void getPointNormal(PointAndNormal ** pointNormalIndexs, float ** pointDistanceList, int numOfPoints, float disMin);
 	void addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box, float pointDistance);
 
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
