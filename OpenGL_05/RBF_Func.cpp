@@ -138,28 +138,22 @@ BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 {
 	BoundingBox *box = new BoundingBox;
 	float pointDistanceMin = INFINITY_F;
-	float **pointDistanceList = new float *[pointNormals->size()];
-	PointAndNormal **pointNormalIndexs = new PointAndNormal *[pointNormals->size()];
+	float pointDistance;
 
 	RBF_PointNormal_Iter pointNormalI_i = pointNormals->begin();
 	RBF_PointNormal_Iter pointNormalI_j;
-	for (int i = 0; pointNormalI_i != pointNormals->end(); pointNormalI_i++, i++)
+	for (; pointNormalI_i != pointNormals->end(); pointNormalI_i++)
 	{
-		pointNormalIndexs[i] = *pointNormalI_i;
-		pointDistanceList[i] = new float[pointNormals->size()];
-
 		pointNormalI_j = pointNormalI_i;
-		pointNormalI_j++;
-		for (int j = i + 1; pointNormalI_j != pointNormals->end(); pointNormalI_j++, j++)
+		for (pointNormalI_j++ ; pointNormalI_j != pointNormals->end(); pointNormalI_j++)
 		{
-			pointDistanceList[i][j] = glm::distance((*pointNormalI_i)->point, (*pointNormalI_j)->point);
-
-			if (pointDistanceMin > pointDistanceList[i][j])
-				pointDistanceMin = pointDistanceList[i][j];
+			pointDistance = glm::distance((*pointNormalI_i)->point, (*pointNormalI_j)->point);
+			if (pointDistanceMin > pointDistance)
+				pointDistanceMin = pointDistance;
 		}
 	}
 
-	getPointNormal(pointNormalIndexs, pointDistanceList, pointNormals->size(), pointDistanceMin);
+	getPointNormal(pointNormals);
 	addNewPoints(pointNormals, box, pointDistanceMin / 2);
 
 	return box;
@@ -185,31 +179,17 @@ void RBF_Func::cutBBox(BoundingBox * box)
 	cutBBox(newBBox);
 }
 
-void RBF_Func::getPointNormal(PointAndNormal ** pointNormalIndexs, float ** pointDistanceList, int numOfPoints, float disMin)
+void RBF_Func::getPointNormal(RBF_PointNormal_List * pointNormals)
 {
-	PointAndNormal * pointInPlane[3];
-	vec3 vector1, vector2;
-	vec3 normal;
-	float pointDistance = 100.0f * disMin;
-	int k;
-
-	for (int i = 0; i < numOfPoints; i++)
+	RBF_PointNormal_Iter pointNormalI_i = pointNormals->begin();
+	RBF_PointNormal_Iter pointNormalI_j;
+	for (; pointNormalI_i != pointNormals->end(); pointNormalI_i++)
 	{
-		k = 0;
-		for (int j = 0; k < 3 && j < numOfPoints; j++)
+		pointNormalI_j = pointNormals->begin();
+		for (; pointNormalI_j != pointNormals->end(); pointNormalI_j++)
 		{
-			if ( (i < j && pointDistanceList[i][j] < pointDistance)
-			  || (i > j && pointDistanceList[j][i] < pointDistance) )
-				pointInPlane[k++] = pointNormalIndexs[j];
+
 		}
-
-		if (k < 3)
-			continue;
-
-		vector1 = pointInPlane[0]->point - pointInPlane[1]->point;
-		vector2 = pointInPlane[1]->point - pointInPlane[2]->point;
-		normal = glm::cross(vector1, vector2);
-		pointNormalIndexs[i]->Normal = vec4(glm::normalize(normal), 0.0f);
 	}
 }
 
@@ -224,10 +204,10 @@ void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * b
 		box->points.push_back(point);
 
 		newPoint = new vec4(*point + (*pointNormalI)->Normal * pointDistance);
-		box->points.push_back(newPoint);
+		//box->points.push_back(newPoint);
 
 		newPoint = new vec4(*point - (*pointNormalI)->Normal * pointDistance);
-		box->points.push_back(newPoint);
+		//box->points.push_back(newPoint);
 	}
 }
 
