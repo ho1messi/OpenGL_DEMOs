@@ -14,16 +14,11 @@ using std::string;
 using glm::vec3;
 using glm::vec4;
 
-struct RBF_Point
-{
-	vec3 point;
-	float w;
-	float d;
-};
+class NoSuitBoxError {};
 
 struct BoundingBox
 {
-	std::list<RBF_Point *> points;
+	std::list<vec4 *> points;
 	float xMin;
 	float xMax;
 	float xMid;
@@ -38,21 +33,19 @@ struct PointAndNormal
 	vec3 point;
 
 	// easy to multyply by vec4
-	vec3 normal;
+	vec4 Normal;
 };
 
-typedef std::list<RBF_Point *> RBF_Point_List;
 typedef std::list<BoundingBox *> RBF_BBox_List;
 typedef std::list<PointAndNormal *> RBF_PointNormal_List;
 typedef RBF_BBox_List::iterator RBF_BBox_Iter;
 typedef RBF_PointNormal_List::iterator RBF_PointNormal_Iter;
-typedef RBF_Point_List::iterator RBF_Point_Iter;
 
 // build the infinity float num from bitmap
 const unsigned int P_INFINITY_F_BITMAP = 0x7F7FFFFF;
 const float INFINITY_F = *((float *)(&P_INFINITY_F_BITMAP));
 
-const float BOUNDING_BOX_THICK = 0.0f;
+const float BOUNDING_BOX_THICK = 0.001f;
 const float BBOX_MIN_HALF_WIDTH = 0.0001f;
 
 class RBF_Func
@@ -81,7 +74,6 @@ private:
 	void addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box, float pointDistance);
 
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
-	inline void mergeBBox(BoundingBox * box1, BoundingBox * box2);
 	
 	inline void bBoxPointsWeight(BoundingBox * box);
 	inline void bBoxInfo(BoundingBox * box);
@@ -90,7 +82,7 @@ private:
 	inline float bBoxFunc(BoundingBox * box, float x, float y, float z);
 	inline float bBoxFuncWeight(BoundingBox * box, float x);
 
-	inline static float vec3DisModuleCube(const vec3 & point1, const vec3 & point2);
+	inline static float vec3DisModuleCube(const vec4 * point1, const vec4 * point2);
 };
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2);
