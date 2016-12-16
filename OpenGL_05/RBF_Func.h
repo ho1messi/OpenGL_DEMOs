@@ -60,7 +60,7 @@ class RBF_Func
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 500;
+	static const int BBOX_MAX_POINTS = 300;
 
 public:
 	RBF_Func();

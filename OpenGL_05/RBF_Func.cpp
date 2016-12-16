@@ -134,13 +134,13 @@ void RBF_Func::initBBox(RBF_PointNormal_List * pointNormals)
 	// still some trouble with this
 	RBF_BBox_Iter boxI_i = mBBoxList.begin();
 	RBF_BBox_Iter boxI_j = mBBoxList.begin();
-	for (boxI_i++; boxI_i != mBBoxList.end(); boxI_i++, boxI_j++)
-		mergeBBox(*boxI_j, *boxI_i);
+	//for (boxI_i++; boxI_i != mBBoxList.end(); boxI_i++, boxI_j++)
+		//mergeBBox(*boxI_j, *boxI_i);
 
 	// update Bounding Box's Half Width and xMid
 	RBF_BBox_Iter boxI = mBBoxList.begin();
-	//for (; boxI != mBBoxList.end(); boxI++)
-		//bBoxInfo(*boxI);
+	for (; boxI != mBBoxList.end(); boxI++)
+		bBoxInfo(*boxI);
 }
 
 void RBF_Func::initFunc()
@@ -385,6 +385,22 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 		cout << d(i) << '\t' << t(i) << endl;
 	}
 	*/
+
+	Eigen::VectorXf t = matrix * w - d;
+	float tt = t.transpose() * t;
+	cout << tt << endl;
+	if (tt > 150.0f)
+	{
+		RBF_BBox_Iter boxI = this->mBBoxList.begin();
+		for (; boxI != mBBoxList.end(); boxI++)
+		{
+			if (*boxI == box)
+			{
+				mBBoxList.erase(boxI);
+				break;
+			}
+		}
+	}
 }
 
 void RBF_Func::bBoxInfo(BoundingBox * box)
