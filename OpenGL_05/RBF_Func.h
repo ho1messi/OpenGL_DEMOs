@@ -60,7 +60,7 @@ class RBF_Func
 private:
 	RBF_BBox_List mBBoxList;
 
-	static const int BBOX_MAX_POINTS = 300;
+	static const int BBOX_MAX_POINTS = 500;
 
 public:
 	RBF_Func();
@@ -91,6 +91,8 @@ private:
 	inline float bBoxFuncWeight(BoundingBox * box, float x);
 
 	inline static float vec3DisModuleCube(const vec3 & point1, const vec3 & point2);
+
+	void test();
 };
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2);
