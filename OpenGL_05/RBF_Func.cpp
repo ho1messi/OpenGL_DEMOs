@@ -29,6 +29,7 @@ RBF_Func::RBF_Func(const string & path)
 	RBF_PointNormal_List *pointNormals = loadPoints(path.c_str());
 	initBBox(pointNormals);
 	initFunc();
+	//test();
 }
 
 RBF_Func::~RBF_Func()
@@ -48,7 +49,7 @@ float RBF_Func::func(float x, float y, float z)
 		if (x >= (*boxI)->xMin && x < (*boxI)->xMax)
 		{
 			// each Bounding Box multi by it's weight
-			return bBoxFuncWeight(*boxI, x) * bBoxFunc(*boxI, x, y, z);
+			return bBoxFunc(*boxI, x, y, z);// *bBoxFuncWeight(*boxI, x);
 			haveBBox = true;
 		}
 	}
@@ -134,8 +135,8 @@ void RBF_Func::initBBox(RBF_PointNormal_List * pointNormals)
 	// still some trouble with this
 	RBF_BBox_Iter boxI_i = mBBoxList.begin();
 	RBF_BBox_Iter boxI_j = mBBoxList.begin();
-	//for (boxI_i++; boxI_i != mBBoxList.end(); boxI_i++, boxI_j++)
-		//mergeBBox(*boxI_j, *boxI_i);
+	for (boxI_i++; boxI_i != mBBoxList.end(); boxI_i++, boxI_j++)
+		mergeBBox(*boxI_j, *boxI_i);
 
 	// update Bounding Box's Half Width and xMid
 	RBF_BBox_Iter boxI = mBBoxList.begin();
@@ -194,7 +195,7 @@ BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 	<< endl << endl;
 	}
 	*/
-	addNewPoints(pointNormals, box, pointDistanceMin / 2);
+	addNewPoints(pointNormals, box, 0.02f);
 
 	return box;
 }
@@ -259,6 +260,7 @@ void RBF_Func::getPointNormal(PointAndNormal ** pointNormalIndexs, float ** poin
 void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box, float pointDistance)
 {
 	vec3 *point, *normal;
+	vec3 point_temp;
 
 	RBF_PointNormal_Iter pointNormalI = pointNormals->begin();
 	for (; pointNormalI != pointNormals->end(); pointNormalI++)
@@ -270,6 +272,26 @@ void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * b
 		box->points.push_back(new RBF_Point({ (*point) + (*normal) * pointDistance, 0.0f, 1.0f }));
 
 		box->points.push_back(new RBF_Point({ (*point) - (*normal) * pointDistance, 0.0f, -1.0f }));
+
+		/* for debug
+		point_temp = *point;
+		cout << point_temp.x << "\t"
+			<< point_temp.y << "\t"
+			<< point_temp.z << "\t"
+			<< endl;
+		
+		point_temp = (*point) + (*normal) * pointDistance;
+		cout << point_temp.x << "\t"
+			<< point_temp.y << "\t"
+			<< point_temp.z << "\t"
+			<< endl;
+
+		point_temp = (*point) - (*normal) * pointDistance;
+		cout << point_temp.x << "\t"
+			<< point_temp.y << "\t"
+			<< point_temp.z << "\t"
+			<< endl << endl;
+		*/
 	}
 }
 
@@ -296,11 +318,15 @@ void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
 
 void RBF_Func::mergeBBox(BoundingBox * box1, BoundingBox * box2)
 {
+	RBF_Point *newPoint;
 	box1->xMax = box2->xMax;
 
 	RBF_Point_Iter pointI = box2->points.begin();
 	for (; pointI != box2->points.end(); pointI++)
-		box1->points.push_back(*pointI);
+	{
+		newPoint = new RBF_Point(**pointI);
+		box1->points.push_back(newPoint);
+	}
 }
 
 void RBF_Func::bBoxPointsWeight(BoundingBox * box)
@@ -336,12 +362,15 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 		d(i) = (*pointI_i)->d - 1;
 	}
 
-	//cout << d << endl;
+	//cout << matrix << endl;
+	//cout << d << endl << endl;
 
-	//Eigen::VectorXf w = matrix.colPivHouseholderQr().solve(d);
-	Eigen::VectorXf w = matrix.fullPivLu().solve(d);
+	//Eigen::VectorXf w = matrix.inverse() * d;
+	Eigen::VectorXf w = matrix.colPivHouseholderQr().solve(d);
+	//Eigen::VectorXf w = matrix.fullPivLu().solve(d);
 
-	//cout << w << endl;
+	//cout << w << endl << endl;
+	//cout << w(numOfPoints + 3);
 
 	pointI_i = box->points.begin();
 	for (int i = 0; i < numOfPoints; i++, pointI_i++)
@@ -351,11 +380,38 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 	box->b = w(numOfPoints + 1);
 	box->c = w(numOfPoints + 2);
 
-	/* for debug
+	/*// for debug
 	pointI_i = box->points.begin();
 	for (; pointI_i != box->points.end(); pointI_i++)
-	cout << func((*pointI_i)->x, (*pointI_i)->y, (*pointI_i)->z) << endl;
+	cout << func((*pointI_i)->point.x, (*pointI_i)->point.y, (*pointI_i)->point.z) << endl;
 	*/
+
+	/*// for debug
+	Eigen::VectorXf t1 = matrix * w;
+	for (int i = 0; i < numOfPoints; i++)
+	{
+		cout << d(i) << '\t' << t1(i) << endl;
+	}
+	*/
+	
+	static int _temp = 1;
+	Eigen::VectorXf t2 = matrix * w - d;
+	float tt = t2.transpose() * t2;
+	cout << tt << "\t" << box->xMin << "\t" << box->xMax << endl << endl;
+	/*
+	if (_temp == 52)
+	{
+		RBF_BBox_Iter boxI = this->mBBoxList.begin();
+		for (; boxI != mBBoxList.end(); boxI++)
+		{
+			if (*boxI == box)
+			{
+				mBBoxList.erase(boxI);
+				break;
+			}
+		}
+	}
+	/**/
 }
 
 void RBF_Func::bBoxInfo(BoundingBox * box)
@@ -398,7 +454,26 @@ float RBF_Func::vec3DisModuleCube(const vec3 & point1, const vec3 & point2)
 	return module * module * module;
 }
 
+void RBF_Func::test()
+{
+	cout << endl << "=========test=========" << endl;
+
+	RBF_Point *p;
+
+	RBF_BBox_Iter boxI_2 = mBBoxList.begin();
+	RBF_BBox_Iter boxI_1 = boxI_2++;
+	RBF_Point_Iter pointI = (*boxI_2)->points.begin();
+	for (; pointI != (*boxI_2)->points.end(); pointI++)
+	{
+		p = *pointI;
+		cout << "\tBBox1:\t" << bBoxFunc(*boxI_1, p->point.x, p->point.y, p->point.z);
+		cout << "\tBBox2:\t" << bBoxFunc(*boxI_2, p->point.x, p->point.y, p->point.z);
+		cout << "\tFunc:\t"  << func(p->point.x, p->point.y, p->point.z);
+		cout << endl;
+	}
+}
+
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2)
 {
-	return box1->xMax > box2->xMax;
+	return box1->xMin < box2->xMin;
 }

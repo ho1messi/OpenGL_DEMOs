@@ -91,6 +91,8 @@ private:
 	inline float bBoxFuncWeight(BoundingBox * box, float x);
 
 	inline static float vec3DisModuleCube(const vec3 & point1, const vec3 & point2);
+
+	void test();
 };
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2);
