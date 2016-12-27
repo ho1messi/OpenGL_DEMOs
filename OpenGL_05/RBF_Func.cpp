@@ -29,7 +29,6 @@ RBF_Func::RBF_Func(const string & path)
 	RBF_PointNormal_List *pointNormals = loadPoints(path.c_str());
 	initBBox(pointNormals);
 	initFunc();
-	//test();
 }
 
 RBF_Func::~RBF_Func()
@@ -49,7 +48,7 @@ float RBF_Func::func(float x, float y, float z)
 		if (x >= (*boxI)->xMin && x < (*boxI)->xMax)
 		{
 			// each Bounding Box multi by it's weight
-			return bBoxFunc(*boxI, x, y, z);// *bBoxFuncWeight(*boxI, x);
+			value += bBoxFunc(*boxI, x, y, z) *bBoxFuncWeight(*boxI, x);
 			haveBBox = true;
 		}
 	}
@@ -157,45 +156,37 @@ void RBF_Func::initFunc()
 // ================================================================================
 BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 {
+	PointAndNormal *pointNormal;
 	BoundingBox *box = new BoundingBox;
-	float pointDistanceMin = INFINITY_F;
-	float **pointDistanceList = new float *[pointNormals->size()];
-	PointAndNormal **pointNormalIndexs = new PointAndNormal *[pointNormals->size()];
+	RBF_PointNormal_List pointNormalsTemp;
+	int xMaxIndex;
+	box->xMax = -INFINITY_F;
+	box->xMin = INFINITY_F;
 
-	RBF_PointNormal_Iter pointNormalI_i = pointNormals->begin();
-	RBF_PointNormal_Iter pointNormalI_j;
-	for (int i = 0; pointNormalI_i != pointNormals->end(); pointNormalI_i++, i++)
+	int size = pointNormals->size();
+	for (int i = 0; i < size; i++)
 	{
-		pointNormalIndexs[i] = *pointNormalI_i;
-		pointDistanceList[i] = new float[pointNormals->size()];
+		pointNormal = (*pointNormals)[i];
 
-		pointNormalI_j = pointNormalI_i;
-		pointNormalI_j++;
-		for (int j = i + 1; pointNormalI_j != pointNormals->end(); pointNormalI_j++, j++)
+		if (box->xMin > pointNormal->point.x)
+			box->xMin = pointNormal->point.x;
+		if (box->xMax < pointNormal->point.x)
 		{
-			pointDistanceList[i][j] = glm::distance((*pointNormalI_i)->point, (*pointNormalI_j)->point);
-
-			if (pointDistanceMin > pointDistanceList[i][j])
-				pointDistanceMin = pointDistanceList[i][j];
+			box->xMax = pointNormal->point.x;
+			xMaxIndex = i;
 		}
+
+		mNormal.addPointf( reinterpret_cast<float *>( &(pointNormal->point) ) );
+		pointNormalsTemp.push_back(pointNormal);
 	}
 
-	getPointNormal(pointNormalIndexs, pointDistanceList, pointNormals->size(), pointDistanceMin);
-	/*
-	for (int i = 0; i < pointNormals->size(); i++)
-	{
-	cout << pointNormalIndexs[i]->point.x << "\t"
-	<< pointNormalIndexs[i]->point.y << "\t"
-	<< pointNormalIndexs[i]->point.z << "\t"
-	<< endl;
+	mNormal.setupKDTree();
 
-	cout << pointNormalIndexs[i]->normal.x << "\t"
-	<< pointNormalIndexs[i]->normal.y << "\t"
-	<< pointNormalIndexs[i]->normal.z << "\t"
-	<< endl << endl;
-	}
-	*/
-	addNewPoints(pointNormals, box, 0.02f);
+	getPointNormal(pointNormals);
+
+	//spanningTreeTraversal(pointNormals, &pointNormalsTemp, xMaxIndex);
+	
+	addNewPoints(pointNormals, box);
 
 	return box;
 }
@@ -226,67 +217,137 @@ void RBF_Func::cutBBox(BoundingBox * box)
 // get the normal of each point
 // still some trouble with this
 // ===============================================================================================
-void RBF_Func::getPointNormal(PointAndNormal ** pointNormalIndexs, float ** pointDistanceList, int numOfPoints, float disMin)
+void RBF_Func::getPointNormal(RBF_PointNormal_List * pointNormals)
 {
-	PointAndNormal * pointInPlane[3];
-	vec3 vector1, vector2;
 	vec3 normal;
-	float pointDistance = 100.0f * disMin;
-	int k;
+	PointAndNormal *pointNormal;
 
-	for (int i = 0; i < numOfPoints; i++)
+	RBF_PointNormal_Iter pointNormalI = pointNormals->begin();
+	for (; pointNormalI != pointNormals->end(); pointNormalI++)
 	{
-		/*
-		k = 0;
-		for (int j = 0; k < 3 && j < numOfPoints; j++)
-		{
-		if ( (i < j && pointDistanceList[i][j] < pointDistance)
-		|| (i > j && pointDistanceList[j][i] < pointDistance) )
-		pointInPlane[k++] = pointNormalIndexs[j];
-		}
+		pointNormal = *pointNormalI;
 
-		if (k < 3)
-		continue;
-
-		vector1 = pointInPlane[0]->point - pointInPlane[1]->point;
-		vector2 = pointInPlane[1]->point - pointInPlane[2]->point;
-		normal = glm::cross(vector1, vector2);
+		/* for debug
+		normal = pointNormal->point;
+		pointNormal->distanceMin = 0.02;
 		*/
-		normal = pointNormalIndexs[i]->point;
-		pointNormalIndexs[i]->normal = vec3(glm::normalize(normal));
+
+		mNormal.getNormal3f(
+			reinterpret_cast<float *>(&(pointNormal->point)), 
+			8, 
+			pointNormal->distanceMin, 
+			reinterpret_cast<float *>(&normal)
+		);
+
+		if (pointNormal->distanceMin < 0.001f)
+			pointNormal->distanceMin = 0.001f;
+
+		pointNormal->normal = glm::normalize(normal);
 	}
 }
 
-void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box, float pointDistance)
+void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals, 
+	RBF_PointNormal_List * pointNormalsTemp, int xMaxIndex)
 {
+	unsigned int size = pointNormals->size();
+	unsigned int count = size;
+	const int k = 3;
+	const int queueSize = k * k + k;
+
+	int indexQueue[queueSize];
+	int neighbors[k];
+	indexQueue[0] = xMaxIndex;
+	int p1 = 0;
+	int p2 = 1;
+
+	int index;
+	int numOfNeighbors;
+	float *pPoint;
+
+	//	the point has the largest X value
+	//	it's normal's X value must be positive
+	if ( (*pointNormals)[xMaxIndex]->normal.x < 0.0f )
+		(*pointNormals)[xMaxIndex]->normal *= -1.0f;
+	
+	pPoint = reinterpret_cast<float *>( &( (*pointNormalsTemp)[xMaxIndex]->point ) );
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp->erase(pointNormalsTemp->begin() + xMaxIndex);
+
+	//	breadth-first traversal
+	//	base on k-nearest point
+	while (count > 0)
+	{
+		mNormal.setupKDTree();
+
+		numOfNeighbors = k > count ? k : count;
+		index = indexQueue[p1];
+		pPoint = reinterpret_cast<float *>( &( (*pointNormals)[index]->point ) );
+
+		mNormal.getNeighborsf(
+			pPoint,
+			k,
+			neighbors
+		);
+
+		for (int i = 0; i < numOfNeighbors; i++, p2 = (p2 + 1) % queueSize)
+		{
+			indexQueue[p2] = neighbors[i];
+		}
+
+	}
+}
+
+void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box)
+{
+	PointAndNormal *pointNormal;
 	vec3 *point, *normal;
 	vec3 point_temp;
 
 	RBF_PointNormal_Iter pointNormalI = pointNormals->begin();
 	for (; pointNormalI != pointNormals->end(); pointNormalI++)
 	{
-		point = &((*pointNormalI)->point);
-		normal = &((*pointNormalI)->normal);
+		pointNormal = *pointNormalI;
+		point = &(pointNormal->point);
+		normal = &(pointNormal->normal);
+
+		// it's a problem
+		pointNormal->distanceMin = 0.02f;
+
 		box->points.push_back(new RBF_Point({ *point, 0.0f, 0.0f }));
 
-		box->points.push_back(new RBF_Point({ (*point) + (*normal) * pointDistance, 0.0f, 1.0f }));
+		box->points.push_back(new RBF_Point({ (*point) + (*normal) * pointNormal->distanceMin, 0.0f, 1.0f }));
 
-		box->points.push_back(new RBF_Point({ (*point) - (*normal) * pointDistance, 0.0f, -1.0f }));
+		box->points.push_back(new RBF_Point({ (*point) - (*normal) * pointNormal->distanceMin, 0.0f, -1.0f }));
 
-		/* for debug
+		/*//	for debug
+		point_temp = (*point) + (*normal) * pointNormal->distanceMin;
+		//if ( fabs(point_temp.x) > fabs(point->x) 
+		//	&& fabs(point_temp.y) > fabs(point->y)
+		//	&& fabs(point_temp.z) > fabs(point->z) )
+		if (pointNormal->distanceMin < 0.001f)
+			cout << point->x << "\t"
+				<< point->y << "\t"
+				<< point->z << endl
+				<< normal->x << "\t"
+				<< normal->y << "\t"
+				<< normal->z << endl 
+				<< pointNormal->distanceMin << endl << endl;
+		*/
+		
+		/*// for debug
 		point_temp = *point;
 		cout << point_temp.x << "\t"
 			<< point_temp.y << "\t"
 			<< point_temp.z << "\t"
 			<< endl;
 		
-		point_temp = (*point) + (*normal) * pointDistance;
+		point_temp = (*point) + (*normal) * pointNormal->distanceMin;
 		cout << point_temp.x << "\t"
 			<< point_temp.y << "\t"
 			<< point_temp.z << "\t"
 			<< endl;
 
-		point_temp = (*point) - (*normal) * pointDistance;
+		point_temp = (*point) - (*normal) * pointNormal->distanceMin;
 		cout << point_temp.x << "\t"
 			<< point_temp.y << "\t"
 			<< point_temp.z << "\t"
@@ -314,6 +375,11 @@ void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
 		box2->points.push_back(*pointI);
 		pointI = box1->points.erase(pointI);
 	}
+}
+
+void RBF_Func::fixNormalDirect(PointAndNormal * pointNormal1, PointAndNormal * pointNormal2)
+{
+
 }
 
 void RBF_Func::mergeBBox(BoundingBox * box1, BoundingBox * box2)
@@ -359,18 +425,10 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 		matrix(numOfPoints + 2, i) = (*pointI_i)->point.z;
 		//matrix(numOfPoints + 3, i) = 1.0f;
 
-		d(i) = (*pointI_i)->d - 1;
+		d(i) = (*pointI_i)->d -1.0f;
 	}
 
-	//cout << matrix << endl;
-	//cout << d << endl << endl;
-
-	//Eigen::VectorXf w = matrix.inverse() * d;
 	Eigen::VectorXf w = matrix.colPivHouseholderQr().solve(d);
-	//Eigen::VectorXf w = matrix.fullPivLu().solve(d);
-
-	//cout << w << endl << endl;
-	//cout << w(numOfPoints + 3);
 
 	pointI_i = box->points.begin();
 	for (int i = 0; i < numOfPoints; i++, pointI_i++)
@@ -379,39 +437,6 @@ void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 	box->a = w(numOfPoints);
 	box->b = w(numOfPoints + 1);
 	box->c = w(numOfPoints + 2);
-
-	/*// for debug
-	pointI_i = box->points.begin();
-	for (; pointI_i != box->points.end(); pointI_i++)
-	cout << func((*pointI_i)->point.x, (*pointI_i)->point.y, (*pointI_i)->point.z) << endl;
-	*/
-
-	/*// for debug
-	Eigen::VectorXf t1 = matrix * w;
-	for (int i = 0; i < numOfPoints; i++)
-	{
-		cout << d(i) << '\t' << t1(i) << endl;
-	}
-	*/
-	
-	static int _temp = 1;
-	Eigen::VectorXf t2 = matrix * w - d;
-	float tt = t2.transpose() * t2;
-	cout << tt << "\t" << box->xMin << "\t" << box->xMax << endl << endl;
-	/*
-	if (_temp == 52)
-	{
-		RBF_BBox_Iter boxI = this->mBBoxList.begin();
-		for (; boxI != mBBoxList.end(); boxI++)
-		{
-			if (*boxI == box)
-			{
-				mBBoxList.erase(boxI);
-				break;
-			}
-		}
-	}
-	/**/
 }
 
 void RBF_Func::bBoxInfo(BoundingBox * box)
@@ -452,25 +477,6 @@ float RBF_Func::vec3DisModuleCube(const vec3 & point1, const vec3 & point2)
 
 	float module = std::sqrtf(pd.x * pd.x + pd.y * pd.y + pd.z * pd.z);
 	return module * module * module;
-}
-
-void RBF_Func::test()
-{
-	cout << endl << "=========test=========" << endl;
-
-	RBF_Point *p;
-
-	RBF_BBox_Iter boxI_2 = mBBoxList.begin();
-	RBF_BBox_Iter boxI_1 = boxI_2++;
-	RBF_Point_Iter pointI = (*boxI_2)->points.begin();
-	for (; pointI != (*boxI_2)->points.end(); pointI++)
-	{
-		p = *pointI;
-		cout << "\tBBox1:\t" << bBoxFunc(*boxI_1, p->point.x, p->point.y, p->point.z);
-		cout << "\tBBox2:\t" << bBoxFunc(*boxI_2, p->point.x, p->point.y, p->point.z);
-		cout << "\tFunc:\t"  << func(p->point.x, p->point.y, p->point.z);
-		cout << endl;
-	}
 }
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2)

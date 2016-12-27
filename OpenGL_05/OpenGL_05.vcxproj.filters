@@ -30,6 +30,9 @@
     <ClCompile Include="RBF_Func.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="PC_Normal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -51,6 +54,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="MC_Mesh_Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PC_Normal.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

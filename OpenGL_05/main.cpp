@@ -19,6 +19,8 @@
 #include "MC_Mesh.h"
 #include "PC_Mesh.h"
 
+#include "PC_Normal.h"
+
 //	STD		include
 #include <iostream>
 
@@ -92,6 +94,31 @@ MC_Mesh_Base<NUM_OF_CUBES> *MCmesh = NULL;
 
 int main()
 {
+	/*
+	float p[] = {
+		0.0, 0.0, 0.0,
+		3.0, 1.0, 8.0,
+		1.0, 1.0, 8.0,
+		3.0, 3.0, 2.0
+	};
+	PC_Normal n;
+	n.addPointf(p);
+	n.addPointf(p + 3);
+	n.addPointf(p + 6);
+	n.addPointf(p + 9);
+	float a;
+	int b[3];
+	n.setupKDTree();
+	//n.getNormal3f(p, 3, a, b);
+	n.getNeighborsf(p, 2, b);
+	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
+	n.removePointf(p + 6);
+	n.setupKDTree();
+	n.getNeighborsf(p, 2, b);
+	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
+	//cout << a << endl;
+	*/
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

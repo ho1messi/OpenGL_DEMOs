@@ -84,7 +84,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;ANN.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,7 +109,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;ANN.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,6 +130,7 @@
     <ClCompile Include="HES_Mesh.cpp" />
     <ClCompile Include="HES_MeshSubdivition.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PC_Normal.cpp" />
     <ClCompile Include="RBF_Func.cpp" />
     <ClCompile Include="Table.cpp" />
   </ItemGroup>
@@ -139,6 +140,7 @@
     <ClInclude Include="MC_Mesh.h" />
     <ClInclude Include="MC_Mesh_Base.h" />
     <ClInclude Include="PC_Mesh.h" />
+    <ClInclude Include="PC_Normal.h" />
     <ClInclude Include="RBF_Func.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
