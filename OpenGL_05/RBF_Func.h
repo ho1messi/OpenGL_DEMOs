@@ -15,15 +15,6 @@ using std::string;
 using glm::vec3;
 using glm::vec4;
 
-enum PointStatus
-{
-	STATUS_U1 = 0,
-	STATUS_U2 = 1,
-
-	STATUS_W1 = 4,
-	STATUS_W2 = 5
-};
-
 struct RBF_Point
 {
 	vec3 point;
@@ -52,8 +43,6 @@ struct PointAndNormal
 
 	//	distance between the point and nearest point
 	float distanceMin;
-
-	PointStatus status;
 };
 
 typedef std::list<RBF_Point *> RBF_Point_List;
@@ -78,6 +67,9 @@ private:
 
 	static const int BBOX_MAX_POINTS = 500;
 
+	GLuint VAO, VBO;
+	size_t pointNum;
+
 public:
 	RBF_Func();
 	RBF_Func(std::vector<vec3> & points);
@@ -94,7 +86,8 @@ private:
 	BoundingBox * getBBox(RBF_PointNormal_List * pointNormals);
 	void cutBBox(BoundingBox * box);
 	void getPointNormal(RBF_PointNormal_List * pointNormals);
-	void spanningTreeTraversal(RBF_PointNormal_List * pointNormals, RBF_PointNormal_List * pointNormalsTemp, int xMaxIndex);
+	void spanningTreeTraversal(RBF_PointNormal_List * pointNormals, RBF_PointNormal_List & pointNormalsTemp, 
+		int xMaxIndex, int xMinIndex, int yMaxIndex, int yMinIndex, int zMaxIndex, int zMinIndex);
 	void addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box);
 
 	inline void divBBoxByX(BoundingBox * box1, BoundingBox * box2);
@@ -109,6 +102,12 @@ private:
 	inline float bBoxFuncWeight(BoundingBox * box, float x);
 
 	inline static float vec3DisModuleCube(const vec3 & point1, const vec3 & point2);
+
+public:
+	//	for debug
+	void writeNormals(RBF_PointNormal_List *pointNormals);
+	void setupNormals(RBF_PointNormal_List *pointNormals);
+	void drawNormals();
 };
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2);

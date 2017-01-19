@@ -21,13 +21,15 @@ public:
 	void addPoint(double * point3D);
 	void removePoint(double * point3D);
 	void getNeighbors(double * pointQuery3, int numOfNeighbors, int * neighborIndices);
-	void getNormal3(double * pointQuery3, int numOfNeighbors, double & distanceMin, double * normal3);
+	int getRNeighbors(double * pointQuery3, int numOfNeighbors, double r, int * neighborIndices);
+	void getNormal3(double * pointQuery3, int numOfNeighbors, double distanceQuery, double & distanceMin, double * normal3);
 
 	//	for float
 	void addPointf(float * point3D);
 	void removePointf(float * point3D);
 	void getNeighborsf(float * pointQuery3f, int numOfNeighbors, int * neighborIndices);
-	void getNormal3f(float * pointQuery3f, int numOfNeighbors, float & distanceMinf, float * normal3f);
+	int getRNeighborsf(float * pointQuery3f, int numOfNeighbors, float r, int * neighborIndices);
+	void getNormal3f(float * pointQuery3f, int numOfNeighbors, float distanceQueryf, float & distanceMinf, float * normal3f);
 
 protected:
 	void getNormalFromPointIndices(ANNidxArray indices, int numOfPoints, double * normal3);

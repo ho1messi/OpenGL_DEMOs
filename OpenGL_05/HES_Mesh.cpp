@@ -292,6 +292,8 @@ void HES_Mesh::drawMeshLine()
 	glBindVertexArray(VAO);
 
 	glDrawElements(GL_LINE_LOOP, mIndices.size(), GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
 }
 
 void HES_Mesh::drawMeshFace()
@@ -299,6 +301,8 @@ void HES_Mesh::drawMeshFace()
 	glBindVertexArray(VAO);
 
 	glDrawElements(GL_TRIANGLE_FAN, mIndices.size(), GL_UNSIGNED_INT, 0);
+
+	glBindVertexArray(0);
 }
 
 void HES_Mesh::updateMinMaxPos(const vec3 & pos)

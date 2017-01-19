@@ -56,6 +56,7 @@ int screenHeight = 768;
 bool keyMap[1024];
 bool drawLineFlag = true;
 bool drawFaceFlag = true;
+bool drawNormalFlag = false;
 
 vec3 position(0.0f, 0.0f, 0.0f);
 vec3 scaleSize(3.0f, 3.0f, 3.0f);
@@ -86,10 +87,11 @@ unsigned int indices[] = {
 GLuint VAO[2];
 GLuint VBO[2];
 GLuint EBO[2];
-Shader *shader;
+Shader *shader, *shaderN;
 HES_Mesh *HESmesh;
 HES_MeshSubdivition *HESmeshSubdivition;
 MC_Mesh_Base<NUM_OF_CUBES> *MCmesh = NULL;
+PC_Mesh<NUM_OF_CUBES> *PCmesh = NULL;
 
 
 int main()
@@ -97,8 +99,8 @@ int main()
 	/*
 	float p[] = {
 		0.0, 0.0, 0.0,
-		3.0, 1.0, 8.0,
-		1.0, 1.0, 8.0,
+		3.0, 2.0, 2.0,
+		1.0, 1.0, 3.0,
 		3.0, 3.0, 2.0
 	};
 	PC_Normal n;
@@ -110,11 +112,12 @@ int main()
 	int b[3];
 	n.setupKDTree();
 	//n.getNormal3f(p, 3, a, b);
-	n.getNeighborsf(p, 2, b);
+	n.getRNeighborsf(p, 3, 23.0f, b);
 	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
-	n.removePointf(p + 6);
-	n.setupKDTree();
-	n.getNeighborsf(p, 2, b);
+	b[0] = b[1] = b[2] = -1;
+	//n.removePointf(p + 6);
+	//n.setupKDTree();
+	n.getRNeighborsf(p, 3, 16.0f, b);
 	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
 	//cout << a << endl;
 	*/
@@ -188,6 +191,8 @@ void key_callback(GLFWwindow *window, int key, int scanCode, int action, int mod
 		drawLineFlag = !drawLineFlag;
 	if (key == GLFW_KEY_F && action == GLFW_PRESS)
 		drawFaceFlag = !drawFaceFlag;
+	//if (key == GLFW_KEY_N && action == GLFW_PRESS)
+	//	drawNormalFlag = !drawNormalFlag;
 
 	if (key == GLFW_KEY_W && action == GLFW_PRESS)
 		HESmesh->writeToFile("Resource\\vertices.txt");
@@ -258,22 +263,23 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 
 void drawInit()
 {	
-	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f1);
-	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices0.txt");
+	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f4);
+	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices_m50.txt");
 	HESmesh = MCmesh->getMesh();
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
 	HESmesh->setupMesh();
 	
 	shader = new Shader("Resource\\vShader.glsl", "Resource\\fShader.glsl");
+	shaderN = new Shader("Resource\\vShaderN.glsl", "Resource\\fShaderN.glsl");
 }
 
 void draw()
 {
-	shader->use();
-
 	if (drawFaceFlag)
 	{
+		shader->use();
+
 		mat4 model;
 		model = translate(model, position);
 		model = scale(model, scaleSize);
@@ -308,6 +314,8 @@ void draw()
 
 	if (drawLineFlag)
 	{
+		shader->use();
+
 		mat4 modelL1;
 		modelL1 = translate(modelL1, position);
 		modelL1 = scale(modelL1, scaleSize * 1.002f);
@@ -333,6 +341,31 @@ void draw()
 
 		HESmesh->drawMeshLine();
 	}
+	
+	if (drawNormalFlag)
+	{
+		shaderN->use();
+
+		mat4 model;
+		model = translate(model, position);
+		model = scale(model, scaleSize);
+		model = rotate(model, rotateX, vec3(1.0f, 0.0f, 0.0f));
+		model = rotate(model, rotateY, vec3(0.0f, 1.0f, 0.0f));
+		model = rotate(model, rotateZ, vec3(0.0f, 0.0f, 1.0f));
+
+		mat4 view = glm::lookAt(vec3(0.0f, 0.0f, 20.0f),
+			vec3(0.0f, 0.0f, -1.0f),
+			vec3(0.0f, 1.0f, 0.0f));
+
+		mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 1000.f);
+
+		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+		glUniform4f(glGetUniformLocation(shaderN->program, "color"), 1.0f, 1.0f, 1.0f, 1.0f);
+		PCmesh->drawNormals();
+	}
 
 	glBindVertexArray(0);
 }
@@ -341,6 +374,9 @@ void deleteMeshs()
 {
 	if (MCmesh)
 		delete MCmesh;
+	if (PCmesh)
+		delete PCmesh;
+
 	if (HESmeshSubdivition)
 		delete HESmeshSubdivition;
 

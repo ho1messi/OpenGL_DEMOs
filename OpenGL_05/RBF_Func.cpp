@@ -3,8 +3,11 @@
 #include <cmath>
 #include <Eigen\Dense>
 
+#include <fstream>
+
 // for debug
 #include <iostream>
+#include <ctime>
 using std::cout;
 using std::endl;
 
@@ -106,6 +109,7 @@ RBF_PointNormal_List * RBF_Func::loadPoints(const string & path)
 // make num of points in one bounding box less than BBOX_MAX_POINTS
 void RBF_Func::initBBox(RBF_PointNormal_List * pointNormals)
 {
+	pointNum = pointNormals->size();
 	BoundingBox *box = getBBox(pointNormals);
 
 	box->xMin = INFINITY_F;
@@ -157,9 +161,14 @@ void RBF_Func::initFunc()
 BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 {
 	PointAndNormal *pointNormal;
+	vec3 *point;
 	BoundingBox *box = new BoundingBox;
 	RBF_PointNormal_List pointNormalsTemp;
-	int xMaxIndex;
+	int xMaxIndex, xMinIndex;
+	int yMaxIndex, yMinIndex;
+	int zMaxIndex, zMinIndex;
+	vec3 Max(-INFINITY_F, -INFINITY_F, -INFINITY_F);
+	vec3 Min(INFINITY_F, INFINITY_F, INFINITY_F);
 	box->xMax = -INFINITY_F;
 	box->xMin = INFINITY_F;
 
@@ -167,25 +176,57 @@ BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 	for (int i = 0; i < size; i++)
 	{
 		pointNormal = (*pointNormals)[i];
+		point = &(pointNormal->point);
 
-		if (box->xMin > pointNormal->point.x)
-			box->xMin = pointNormal->point.x;
-		if (box->xMax < pointNormal->point.x)
+		if (Max.x < point->x)
 		{
-			box->xMax = pointNormal->point.x;
+			Max.x = point->x;
 			xMaxIndex = i;
+		}
+		if (Max.y < point->y)
+		{
+			Max.y = point->y;
+			yMaxIndex = i;
+		}
+		if (Max.z < point->z)
+		{
+			Max.z = point->z;
+			zMaxIndex = i;
+		}
+
+		if (Min.x > point->x)
+		{
+			Min.x = point->x;
+			xMinIndex = i;
+		}
+		if (Min.y > point->y)
+		{
+			Min.y = point->y;
+			yMinIndex = i;
+		}
+		if (Min.z > point->z)
+		{
+			Min.z = point->z;
+			zMinIndex = i;
 		}
 
 		mNormal.addPointf( reinterpret_cast<float *>( &(pointNormal->point) ) );
 		pointNormalsTemp.push_back(pointNormal);
 	}
 
+	box->xMax = Max.x;
+	box->xMin = Min.x;
+
 	mNormal.setupKDTree();
 
 	getPointNormal(pointNormals);
 
-	//spanningTreeTraversal(pointNormals, &pointNormalsTemp, xMaxIndex);
-	
+	spanningTreeTraversal(pointNormals, pointNormalsTemp, xMaxIndex, xMinIndex,
+		yMaxIndex, yMinIndex, zMaxIndex, zMinIndex);
+
+	writeNormals(pointNormals);
+	//setupNormals(pointNormals);
+
 	addNewPoints(pointNormals, box);
 
 	return box;
@@ -233,8 +274,9 @@ void RBF_Func::getPointNormal(RBF_PointNormal_List * pointNormals)
 		*/
 
 		mNormal.getNormal3f(
-			reinterpret_cast<float *>(&(pointNormal->point)), 
-			8, 
+			reinterpret_cast<float *>(&(pointNormal->point)),
+			100,
+			0.1f,
 			pointNormal->distanceMin, 
 			reinterpret_cast<float *>(&normal)
 		);
@@ -242,59 +284,131 @@ void RBF_Func::getPointNormal(RBF_PointNormal_List * pointNormals)
 		if (pointNormal->distanceMin < 0.001f)
 			pointNormal->distanceMin = 0.001f;
 
+		//normal = glm::normalize(normal);
+		//cout << normal.x * normal.x + normal.y * normal.y + normal.z * normal.z << endl;
 		pointNormal->normal = glm::normalize(normal);
+
 	}
 }
 
 void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals, 
-	RBF_PointNormal_List * pointNormalsTemp, int xMaxIndex)
+	RBF_PointNormal_List & pointNormalsTemp, int xMaxIndex, int xMinIndex,
+	int yMaxIndex, int yMinIndex, int zMaxIndex, int zMinIndex)
 {
 	unsigned int size = pointNormals->size();
-	unsigned int count = size;
-	const int k = 3;
-	const int queueSize = k * k + k;
+	const int k = 5;
+	const float r = 0.1f;
+	const int queueSize = size;
 
-	int indexQueue[queueSize];
+	//	queue of pointNormal
+	PointAndNormal **indexQueue = new PointAndNormal * [queueSize];
 	int neighbors[k];
-	indexQueue[0] = xMaxIndex;
+	int count = size - 6;
 	int p1 = 0;
-	int p2 = 1;
+	int p2 = 6;
 
-	int index;
+	int indexToFix;
 	int numOfNeighbors;
+	int find;
+	PointAndNormal *pointNormal;
 	float *pPoint;
 
 	//	the point has the largest X value
 	//	it's normal's X value must be positive
-	if ( (*pointNormals)[xMaxIndex]->normal.x < 0.0f )
-		(*pointNormals)[xMaxIndex]->normal *= -1.0f;
+	if ( pointNormalsTemp[xMaxIndex]->normal.x < 0.0f )
+		pointNormalsTemp[xMaxIndex]->normal *= -1.0f;
+	if ( pointNormalsTemp[yMaxIndex]->normal.y < 0.0f )
+		pointNormalsTemp[yMaxIndex]->normal *= -1.0f;
+	if ( pointNormalsTemp[zMaxIndex]->normal.z < 0.0f )
+		pointNormalsTemp[zMaxIndex]->normal *= -1.0f;
+
+	if (pointNormalsTemp[xMinIndex]->normal.x > 0.0f)
+		pointNormalsTemp[xMinIndex]->normal *= -1.0f;
+	if (pointNormalsTemp[yMinIndex]->normal.y > 0.0f)
+		pointNormalsTemp[yMinIndex]->normal *= -1.0f;
+	if (pointNormalsTemp[zMinIndex]->normal.z > 0.0f)
+		pointNormalsTemp[zMinIndex]->normal *= -1.0f;
+
+	// fix one point first
+	indexQueue[0] = pointNormalsTemp[xMaxIndex];
+	indexQueue[1] = pointNormalsTemp[yMaxIndex];
+	indexQueue[2] = pointNormalsTemp[zMaxIndex];
+	indexQueue[3] = pointNormalsTemp[xMinIndex];
+	indexQueue[4] = pointNormalsTemp[yMinIndex];
+	indexQueue[5] = pointNormalsTemp[zMinIndex];
 	
-	pPoint = reinterpret_cast<float *>( &( (*pointNormalsTemp)[xMaxIndex]->point ) );
+	//	delete the point which has the max X
+	pPoint = reinterpret_cast<float *>( &( pointNormalsTemp[xMaxIndex]->point ) );
 	mNormal.removePointf(pPoint);
-	pointNormalsTemp->erase(pointNormalsTemp->begin() + xMaxIndex);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + xMaxIndex);
+
+	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[yMaxIndex]->point));
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + yMaxIndex);
+
+	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[zMaxIndex]->point));
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + zMaxIndex);
+
+	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[xMinIndex]->point));
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + xMinIndex);
+
+	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[yMinIndex]->point));
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + yMinIndex);
+
+	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[zMinIndex]->point));
+	mNormal.removePointf(pPoint);
+	pointNormalsTemp.erase(pointNormalsTemp.begin() + zMinIndex);
 
 	//	breadth-first traversal
 	//	base on k-nearest point
-	while (count > 0)
+	while (count > 0 && p1 < p2)
 	{
+		//	delete the point in index p1
+		pointNormal = indexQueue[p1];
+		pPoint = reinterpret_cast<float *>( &(pointNormal->point ) );
+		p1++;
+
+		//	build the KD tree again, because the data changed
 		mNormal.setupKDTree();
 
-		numOfNeighbors = k > count ? k : count;
-		index = indexQueue[p1];
-		pPoint = reinterpret_cast<float *>( &( (*pointNormals)[index]->point ) );
-
-		mNormal.getNeighborsf(
+		//	get k nearest point in r
+		numOfNeighbors = std::min(k, count);
+		find = mNormal.getRNeighborsf(
 			pPoint,
-			k,
+			numOfNeighbors,
+			r,
 			neighbors
 		);
+		find = std::min(find, numOfNeighbors);
 
-		for (int i = 0; i < numOfNeighbors; i++, p2 = (p2 + 1) % queueSize)
+		//	add them to the index queue
+		for (int i = 0; i < find; i++, p2++)
 		{
-			indexQueue[p2] = neighbors[i];
+			indexToFix = neighbors[i];
+
+			fixNormalDirect(pointNormal, pointNormalsTemp[indexToFix]);
+
+			indexQueue[p2] = pointNormalsTemp[indexToFix];
 		}
 
+		std::sort(neighbors, neighbors + find, std::greater<int>());
+
+		for (int i = 0; i < find; i++)
+		{
+			indexToFix = neighbors[i];
+
+			pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[indexToFix]->point));
+			mNormal.removePointf(pPoint);
+			pointNormalsTemp.erase(pointNormalsTemp.begin() + indexToFix);
+		}
+
+		count -= find;
 	}
+
+	delete indexQueue;
 }
 
 void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box)
@@ -311,7 +425,7 @@ void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * b
 		normal = &(pointNormal->normal);
 
 		// it's a problem
-		pointNormal->distanceMin = 0.02f;
+		pointNormal->distanceMin = 0.01f;
 
 		box->points.push_back(new RBF_Point({ *point, 0.0f, 0.0f }));
 
@@ -379,7 +493,8 @@ void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
 
 void RBF_Func::fixNormalDirect(PointAndNormal * pointNormal1, PointAndNormal * pointNormal2)
 {
-
+	if (glm::dot(pointNormal1->normal, pointNormal2->normal) < -0.0f)
+		pointNormal2->normal *= -1.0f;
 }
 
 void RBF_Func::mergeBBox(BoundingBox * box1, BoundingBox * box2)
@@ -477,6 +592,70 @@ float RBF_Func::vec3DisModuleCube(const vec3 & point1, const vec3 & point2)
 
 	float module = std::sqrtf(pd.x * pd.x + pd.y * pd.y + pd.z * pd.z);
 	return module * module * module;
+}
+
+void RBF_Func::writeNormals(RBF_PointNormal_List *pointNormals)
+{
+	std::ofstream fileOut("Resource\\normals.txt");
+
+	vec3 *point, *normal;
+	PointAndNormal *pointNormal;
+	for (size_t i = 0; i < pointNum; i++)
+	{
+		pointNormal = (*pointNormals)[i];
+		point = &(pointNormal->point);
+		normal = &(pointNormal->normal);
+		
+		fileOut << "v\t" << point->x << "\t" << point->y << "\t" << point->z << endl;
+		fileOut << "n\t" << normal->x << "\t" << normal->y << "\t" << normal->z << endl;
+	}
+
+	fileOut.close();
+}
+
+void RBF_Func::setupNormals(RBF_PointNormal_List * pointNormals)
+{
+	if (!glIsVertexArray(VAO))
+		glGenVertexArrays(1, &VAO);
+	if (!glIsBuffer(VBO))
+		glGenBuffers(1, &VBO);
+
+	size_t vec3Size = sizeof(vec3);
+	size_t offset = 0;
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBufferData(GL_ARRAY_BUFFER, 2 * vec3Size * pointNum, 0, GL_STATIC_DRAW);
+
+	vec3 newVertex;
+	PointAndNormal *pointNormal;
+	for (size_t i = 0; i < pointNum; i++)
+	{
+		pointNormal = (*pointNormals)[i];
+		newVertex = pointNormal->point + pointNormal->normal;
+
+		glBufferSubData(GL_VERTEX_ARRAY, offset, vec3Size, &(pointNormal->point) );
+		offset += vec3Size;
+
+		glBufferSubData(GL_VERTEX_ARRAY, offset, vec3Size, &newVertex);
+		offset += vec3Size;
+	}
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, vec3Size, 0);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0);
+}
+
+
+//	something wrong
+void RBF_Func::drawNormals()
+{
+	glBindVertexArray(VAO);
+
+	glDrawArrays(GL_LINES, 0, pointNum * 2);
+
+	glBindVertexArray(0);
 }
 
 bool bBoxCmp(const BoundingBox * box1, const BoundingBox * box2)

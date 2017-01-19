@@ -14,6 +14,7 @@ public:
 	PC_Mesh();
 	PC_Mesh(const string & path);
 	virtual ~PC_Mesh();
+	void drawNormals();
 
 protected:
 	virtual float getValue(int x, int y, int z);
@@ -36,6 +37,12 @@ template <unsigned int N>
 PC_Mesh<N>::~PC_Mesh()
 {
 
+}
+
+template <unsigned int N>
+void PC_Mesh<N>::drawNormals()
+{
+	func.drawNormals();
 }
 
 template <unsigned int N>

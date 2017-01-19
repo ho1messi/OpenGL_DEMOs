@@ -74,8 +74,6 @@ void PC_Normal::setupKDTree()
 void PC_Normal::getNeighbors(double * queryPoint3, int numOfNeighbors,
 	int * neighborIndices)
 {
-	numOfNeighbors++;
-
 	ANNidxArray indices = new ANNidx[numOfNeighbors];
 	ANNdistArray distance = new ANNdist[numOfNeighbors];
 
@@ -86,8 +84,8 @@ void PC_Normal::getNeighbors(double * queryPoint3, int numOfNeighbors,
 		distance
 	);
 
-	for (int i = 1; i < numOfNeighbors; i++)
-		neighborIndices[i - 1] = indices[i];
+	for (int i = 0; i < numOfNeighbors; i++)
+		neighborIndices[i] = indices[i];
 
 	delete[] indices;
 	delete[] distance;
@@ -107,8 +105,43 @@ void PC_Normal::getNeighborsf(float * queryPoint3f, int numOfNeighbors,
 	delete[] queryPoint3;
 }
 
+int PC_Normal::getRNeighbors(double * queryPoint3, int numOfNeighbors,
+	double r, int * neighborIndices)
+{
+	ANNidxArray indices = new ANNidx[numOfNeighbors];
+
+	int find = mPointKDTree->annkFRSearch(
+		queryPoint3,
+		r,
+		numOfNeighbors,
+		indices
+	);
+
+	int k = std::min(find, numOfNeighbors);
+	for (int i = 0; i < k; i++)
+		neighborIndices[i] = indices[i];
+
+	delete[] indices;
+	return find;
+}
+
+int PC_Normal::getRNeighborsf(float * queryPoint3f, int numOfNeighbors,
+	float r, int * neighborIndices)
+{
+	double *queryPoint3 = new double[3];
+
+	queryPoint3[0] = static_cast<double>(queryPoint3f[0]);
+	queryPoint3[1] = static_cast<double>(queryPoint3f[1]);
+	queryPoint3[2] = static_cast<double>(queryPoint3f[2]);
+
+	int find = getRNeighbors(queryPoint3, numOfNeighbors, r, neighborIndices);
+
+	delete[] queryPoint3;
+	return find;
+}
+
 void PC_Normal::getNormal3(double * queryPoint3, int numOfNeighbors, 
-	double & distanceMin, double * normal3)
+	double distanceQuery, double & distanceMin, double * normal3)
 {
 	//	indices[0] always equal to the query point
 	numOfNeighbors++;
@@ -116,34 +149,37 @@ void PC_Normal::getNormal3(double * queryPoint3, int numOfNeighbors,
 	ANNidxArray neighborIndices = new ANNidx[numOfNeighbors];
 	ANNdistArray distance = new ANNdist[numOfNeighbors];
 
-	mPointKDTree->annkSearch(
+	int find = mPointKDTree->annkFRSearch(
 		queryPoint3,
+		distanceQuery,
 		numOfNeighbors,
 		neighborIndices,
 		distance
 	);
+	find = std::min(find, numOfNeighbors);
 
 	//	indices[0] always equal to the query point
 	distanceMin = sqrt(distance[1]);
 
-	getNormalFromPointIndices(neighborIndices, numOfNeighbors, normal3);
+	getNormalFromPointIndices(neighborIndices, find, normal3);
 
 	delete[] distance;
 	delete[] neighborIndices;
 }
 
 void PC_Normal::getNormal3f(float * queryPoint3f, int numOfNeighbors, 
-	float & distanceMinf, float * normal3f)
+	float distanceQueryf, float & distanceMinf, float * normal3f)
 {
 	double *queryPoint3 = new double[3];
 	double *normal3 = new double[3];
+	double distanceQuery = distanceQueryf;
 	double distanceMin;
 
 	queryPoint3[0] = static_cast<double>(queryPoint3f[0]);
 	queryPoint3[1] = static_cast<double>(queryPoint3f[1]);
 	queryPoint3[2] = static_cast<double>(queryPoint3f[2]);
 
-	getNormal3(queryPoint3, numOfNeighbors, distanceMin, normal3);
+	getNormal3(queryPoint3, numOfNeighbors, distanceQuery, distanceMin, normal3);
 
 	distanceMinf = distanceMin;
 	normal3f[0] = static_cast<float>(normal3[0]);
@@ -181,7 +217,7 @@ void PC_Normal::getNormalFromPointIndices(ANNidxArray indices, int numOfPoints, 
 	M <<	A1, B1, C1,
 			B1, B2, C2,
 			C1, C2, C3;
-	Eigen::Vector3d d(D1, D2, D3);
+	Eigen::Vector3d d(-D1, -D2, -D3);
 	Eigen::Vector3d w = M.colPivHouseholderQr().solve(d);
 	//std::cout << w << std::endl;
 
