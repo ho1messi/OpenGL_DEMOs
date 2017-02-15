@@ -1,13 +1,11 @@
 #include "RBF_Func.h"
 
 #include <cmath>
-#include <Eigen\Dense>
-
 #include <fstream>
-
-// for debug
 #include <iostream>
-#include <ctime>
+
+#include "Third_party\include\Eigen\Dense"
+
 using std::cout;
 using std::endl;
 
@@ -153,6 +151,8 @@ void RBF_Func::initFunc()
 	RBF_BBox_Iter boxI = mBBoxList.begin();
 	for (; boxI != mBBoxList.end(); boxI++)
 		bBoxPointsWeight(*boxI);
+
+	cout << "Function calculation done" << endl;
 }
 
 // get the normal and add some points to the Bounding Box
@@ -214,6 +214,7 @@ BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 		pointNormalsTemp.push_back(pointNormal);
 	}
 
+	//normalizeVetices(pointNormals, Max, Min);
 	box->xMax = Max.x;
 	box->xMin = Min.x;
 
@@ -224,7 +225,7 @@ BoundingBox * RBF_Func::getBBox(RBF_PointNormal_List * pointNormals)
 	spanningTreeTraversal(pointNormals, pointNormalsTemp, xMaxIndex, xMinIndex,
 		yMaxIndex, yMinIndex, zMaxIndex, zMinIndex);
 
-	writeNormals(pointNormals);
+	//writeNormals(pointNormals);
 	//setupNormals(pointNormals);
 
 	addNewPoints(pointNormals, box);
@@ -253,6 +254,25 @@ void RBF_Func::cutBBox(BoundingBox * box)
 	// cut two new Bounding Box
 	cutBBox(box);
 	cutBBox(newBBox);
+}
+
+void RBF_Func::normalizeVetices(RBF_PointNormal_List * pointNormals, vec3 & max, vec3 & min)
+{
+	vec3 diff = (max - min) / NORMALIZE_MAX / 2.0f;
+
+	cout << max.x << "\t" << max.y << "\t" << max.z << endl;
+
+	vec3 *point;
+	RBF_PointNormal_Iter pointNormalI = pointNormals->begin();
+	for (; pointNormalI != pointNormals->end(); pointNormalI++)
+	{
+		point = &( (*pointNormalI)->point );
+		//cout << "O:\t" << point->x << "\t" << point->y << "\t" << point->z << endl;
+		(*point) = ( (*point) - min ) / diff - 1.0f;
+		//cout << "N:\t" << point->x << "\t" << point->y << "\t" << point->z << endl;
+	}
+
+	cout << "Normalization done" << endl;
 }
 
 // get the normal of each point
@@ -328,7 +348,7 @@ void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals,
 		pointNormalsTemp[yMinIndex]->normal *= -1.0f;
 	if (pointNormalsTemp[zMinIndex]->normal.z > 0.0f)
 		pointNormalsTemp[zMinIndex]->normal *= -1.0f;
-
+	/*
 	// fix one point first
 	indexQueue[0] = pointNormalsTemp[xMaxIndex];
 	indexQueue[1] = pointNormalsTemp[yMaxIndex];
@@ -336,8 +356,20 @@ void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals,
 	indexQueue[3] = pointNormalsTemp[xMinIndex];
 	indexQueue[4] = pointNormalsTemp[yMinIndex];
 	indexQueue[5] = pointNormalsTemp[zMinIndex];
-	
-	//	delete the point which has the max X
+	*/
+	int indices[6] = { xMaxIndex, yMaxIndex, zMaxIndex, xMinIndex, yMinIndex, zMinIndex };
+	std::sort(indices, indices + 6, std::greater<int>());
+	for (int i = 0; i < 6; i++)
+	{
+		// fix one point first
+		indexQueue[i] = pointNormalsTemp[indices[i]];
+
+		//	delete the point which has the max X
+		pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[indices[i]]->point));
+		mNormal.removePointf(pPoint);
+		pointNormalsTemp.erase(pointNormalsTemp.begin() + indices[i]);
+	}
+	/*
 	pPoint = reinterpret_cast<float *>( &( pointNormalsTemp[xMaxIndex]->point ) );
 	mNormal.removePointf(pPoint);
 	pointNormalsTemp.erase(pointNormalsTemp.begin() + xMaxIndex);
@@ -361,7 +393,7 @@ void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals,
 	pPoint = reinterpret_cast<float *>(&(pointNormalsTemp[zMinIndex]->point));
 	mNormal.removePointf(pPoint);
 	pointNormalsTemp.erase(pointNormalsTemp.begin() + zMinIndex);
-
+	*/
 	//	breadth-first traversal
 	//	base on k-nearest point
 	while (count > 0 && p1 < p2)
@@ -409,6 +441,8 @@ void RBF_Func::spanningTreeTraversal(RBF_PointNormal_List * pointNormals,
 	}
 
 	delete indexQueue;
+
+	cout << "Normal calculation done" << endl;
 }
 
 void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * box)
@@ -468,6 +502,8 @@ void RBF_Func::addNewPoints(RBF_PointNormal_List * pointNormals, BoundingBox * b
 			<< endl << endl;
 		*/
 	}
+
+	cout << "Adding new points done" << endl;
 }
 
 void RBF_Func::divBBoxByX(BoundingBox * box1, BoundingBox * box2)
@@ -512,7 +548,10 @@ void RBF_Func::mergeBBox(BoundingBox * box1, BoundingBox * box2)
 
 void RBF_Func::bBoxPointsWeight(BoundingBox * box)
 {
+	static int idOfBox = 0;
 	int numOfPoints = box->points.size();
+	cout << "Bounding box " << idOfBox++ << " has " << numOfPoints << " points" << endl;
+
 	Eigen::MatrixXf matrix = Eigen::MatrixXf::Zero(numOfPoints + 3, numOfPoints + 3);
 	Eigen::VectorXf d = Eigen::VectorXf::Zero(numOfPoints + 3);
 
@@ -596,7 +635,7 @@ float RBF_Func::vec3DisModuleCube(const vec3 & point1, const vec3 & point2)
 
 void RBF_Func::writeNormals(RBF_PointNormal_List *pointNormals)
 {
-	std::ofstream fileOut("Resource\\normals.txt");
+	std::ofstream fileOut("Resource\\normals_out.txt");
 
 	vec3 *point, *normal;
 	PointAndNormal *pointNormal;

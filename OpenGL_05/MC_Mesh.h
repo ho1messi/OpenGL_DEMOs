@@ -15,7 +15,7 @@ protected:
 	float(*mF)(float, float, float);
 
 public:
-	MC_Mesh( float(*f)(float, float, float) );
+	MC_Mesh( float(*f)(float, float, float), float scaleSize);
 	virtual ~MC_Mesh();
 
 protected:
@@ -23,7 +23,7 @@ protected:
 };
 
 template <unsigned int N>
-MC_Mesh<N>::MC_Mesh(float(*f)(float, float, float)) : MC_Mesh_Base(),
+MC_Mesh<N>::MC_Mesh(float(*f)(float, float, float), float scaleSize) : MC_Mesh_Base(scaleSize),
 	mF(f)
 {
 

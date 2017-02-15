@@ -1,9 +1,10 @@
 #include "PC_Normal.h"
-#include <Eigen\Dense>
 
 #include <cmath>
 #include <iostream>
 #include <ctime>
+
+#include "Third_party\include\Eigen\Dense"
 
 PC_Normal::PC_Normal() :
 	mPoints(), mpPointsf(), mPointKDTree(NULL)
@@ -217,7 +218,7 @@ void PC_Normal::getNormalFromPointIndices(ANNidxArray indices, int numOfPoints, 
 	M <<	A1, B1, C1,
 			B1, B2, C2,
 			C1, C2, C3;
-	Eigen::Vector3d d(-D1, -D2, -D3);
+	Eigen::Vector3d d(D1, D2, D3);
 	Eigen::Vector3d w = M.colPivHouseholderQr().solve(d);
 	//std::cout << w << std::endl;
 

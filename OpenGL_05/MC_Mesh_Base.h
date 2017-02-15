@@ -47,10 +47,11 @@ private:
 
 	HES_Mesh *mesh;
 
+	const float scaleSize;
 	const float distance;
 
 public:
-	MC_Mesh_Base();
+	MC_Mesh_Base(float scalSize);
 	virtual ~MC_Mesh_Base();
 
 	HES_Mesh * getMesh();
@@ -80,8 +81,8 @@ protected:
 };
 
 template <unsigned int N>
-MC_Mesh_Base<N>::MC_Mesh_Base() :
-	distance(2.0f / N), mesh(NULL)
+MC_Mesh_Base<N>::MC_Mesh_Base(float scaleSize) :
+	scaleSize(scaleSize), distance(2.0f * scaleSize / N), mesh(NULL)
 {
 
 }
@@ -293,17 +294,17 @@ void MC_Mesh_Base<N>::indexToPoint(unsigned int index, vec3I & pos)
 template <unsigned int N>
 void MC_Mesh_Base<N>::getPos(int x, int y, int z, float & posX, float & posY, float & posZ)
 {
-	posX = -1.0f + x * distance;
-	posY = 1.0f - y * distance;
-	posZ = 1.0f - z * distance;
+	posX = -scaleSize + x * distance;
+	posY = scaleSize - y * distance;
+	posZ = scaleSize - z * distance;
 }
 
 template <unsigned int N>
 void MC_Mesh_Base<N>::getPos(const vec3I & point, vec3 & pos)
 {
-	pos.x = -1.0f + point.x * distance;
-	pos.y = 1.0f - point.y * distance;
-	pos.z = 1.0f - point.z * distance;
+	pos.x = -scaleSize + point.x * distance;
+	pos.y = scaleSize - point.y * distance;
+	pos.z = scaleSize - point.z * distance;
 }
 
 template <unsigned int N>

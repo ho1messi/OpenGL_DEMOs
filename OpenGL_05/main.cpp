@@ -1,16 +1,26 @@
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, ".\\Third_party\\lib\\glfw3.lib")
+#pragma comment(lib, ".\\Third_party\\lib\\glew32s.lib")
+#pragma comment(lib, ".\\Third_party\\lib\\ANN.lib")
+
+//	STD		include
+#include <iostream>
+#include <string>
+#include <conio.h>
+
 //	GLEW	include
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
 #endif
-#include <GL\glew.h>
+#include "Third_party\include\GL\glew.h"
 
 //	GLFW	include
-#include <GLFW\glfw3.h>
+#include "Third_party\include\GLFW\glfw3.h"
 
 //	GLM		include
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
+#include "Third_party\include\glm\glm.hpp"
+#include "Third_party\include\glm\gtc\matrix_transform.hpp"
+#include "Third_party\include\glm\gtc\type_ptr.hpp"
 
 //	MY		include
 #include "shader.h"
@@ -18,11 +28,7 @@
 #include "HES_MeshSubdivition.h"
 #include "MC_Mesh.h"
 #include "PC_Mesh.h"
-
 #include "PC_Normal.h"
-
-//	STD		include
-#include <iostream>
 
 using glm::vec3;
 using glm::vec4;
@@ -39,6 +45,9 @@ void mouse_callback(GLFWwindow *window, int key, int action, int mode);
 void scroll_callback(GLFWwindow *window, double xOffset, double yOffset);
 void cursorPos_callback(GLFWwindow *window, double xOffset, double yOffset);
 
+bool menu();
+bool childMenu1();
+bool childMenu2();
 void drawInit();
 void draw();
 void deleteMeshs();
@@ -48,6 +57,7 @@ inline float f1(float x, float y, float z);
 inline float f2(float x, float y, float z);
 inline float f3(float x, float y, float z);
 inline float f4(float x, float y, float z);
+float(*f) (float, float, float);
 
 const int NUM_OF_CUBES = 50;
 
@@ -57,6 +67,8 @@ bool keyMap[1024];
 bool drawLineFlag = true;
 bool drawFaceFlag = true;
 bool drawNormalFlag = false;
+char menuOption = 0;
+string fileName;
 
 vec3 position(0.0f, 0.0f, 0.0f);
 vec3 scaleSize(3.0f, 3.0f, 3.0f);
@@ -87,7 +99,7 @@ unsigned int indices[] = {
 GLuint VAO[2];
 GLuint VBO[2];
 GLuint EBO[2];
-Shader *shader, *shaderN;
+Shader *shader;
 HES_Mesh *HESmesh;
 HES_MeshSubdivition *HESmeshSubdivition;
 MC_Mesh_Base<NUM_OF_CUBES> *MCmesh = NULL;
@@ -96,32 +108,6 @@ PC_Mesh<NUM_OF_CUBES> *PCmesh = NULL;
 
 int main()
 {
-	/*
-	float p[] = {
-		0.0, 0.0, 0.0,
-		3.0, 2.0, 2.0,
-		1.0, 1.0, 3.0,
-		3.0, 3.0, 2.0
-	};
-	PC_Normal n;
-	n.addPointf(p);
-	n.addPointf(p + 3);
-	n.addPointf(p + 6);
-	n.addPointf(p + 9);
-	float a;
-	int b[3];
-	n.setupKDTree();
-	//n.getNormal3f(p, 3, a, b);
-	n.getRNeighborsf(p, 3, 23.0f, b);
-	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
-	b[0] = b[1] = b[2] = -1;
-	//n.removePointf(p + 6);
-	//n.setupKDTree();
-	n.getRNeighborsf(p, 3, 16.0f, b);
-	cout << b[0] << "\t" << b[1] << "\t" << b[2] << endl;
-	//cout << a << endl;
-	*/
-
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -129,33 +115,38 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL DEMO", nullptr, nullptr);
-	glfwMakeContextCurrent(window);
-
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetMouseButtonCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetCursorPosCallback(window, cursorPos_callback);
-
-	glewExperimental = GL_TRUE;
-	glewInit();
-
-	glViewport(0, 0, screenWidth, screenHeight);
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	drawInit();
-
-	while (!glfwWindowShouldClose(window))
+	while (menu())
 	{
-		glfwPollEvents();
+		GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL DEMO", nullptr, nullptr);
+		glfwMakeContextCurrent(window);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		draw();
+		glfwSetKeyCallback(window, key_callback);
+		glfwSetMouseButtonCallback(window, mouse_callback);
+		glfwSetScrollCallback(window, scroll_callback);
+		glfwSetCursorPosCallback(window, cursorPos_callback);
 
-		glfwSwapBuffers(window);
+		glewExperimental = GL_TRUE;
+		glewInit();
+
+		glViewport(0, 0, screenWidth, screenHeight);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+
+		drawInit();
+
+		while (!glfwWindowShouldClose(window))
+		{
+			glfwPollEvents();
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			draw();
+
+			glfwSwapBuffers(window);
+		}
+
+		glfwDestroyWindow(window);
 	}
 
 	deleteMeshs();
@@ -195,7 +186,10 @@ void key_callback(GLFWwindow *window, int key, int scanCode, int action, int mod
 	//	drawNormalFlag = !drawNormalFlag;
 
 	if (key == GLFW_KEY_W && action == GLFW_PRESS)
-		HESmesh->writeToFile("Resource\\vertices.txt");
+	{
+		HESmesh->writeToFile("Resource\\vertices_out.txt");
+		cout << "Writting vertices to file done" << endl;
+	}
 }
 
 void mouse_callback(GLFWwindow *window, int key, int action, int mode)
@@ -261,17 +255,130 @@ void scroll_callback(GLFWwindow *window, double xOffset, double yOffset)
 	}
 }
 
+bool menu()
+{
+	bool flag = false;
+
+	while (!flag)
+	{
+		cout << "===========================" << endl;
+		cout << "=        Main Menu        =" << endl;
+		cout << "===========================" << endl;
+		cout << "请选择需要的功能：" << endl;
+		cout << " 1. Marching Cubes 演示" << endl;
+		cout << " 2. 曲面重建演示" << endl;
+		cout << " ESC. 退出" << endl;
+		cout << endl;
+
+		menuOption = _getch();
+
+		switch (menuOption)
+		{
+		case '1':
+			flag = childMenu1();
+			break;
+		case '2':
+			flag = childMenu2();
+			break;
+		default :
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool childMenu1()
+{
+	cout << "===========================" << endl;
+	cout << "=     Marching  Cubes     =" << endl;
+	cout << "===========================" << endl;
+	cout << "请选择需要绘制的模型：" << endl;
+	cout << " 1. 球形\tf = x^2 + y^2 + z^2 - 1" << endl;
+	cout << " 2. 蘑菇形\tf = (x^2 + y^2 - 3)^3 + (z^3 - 2)^2" << endl;
+	cout << " 3. 心形\tf = (x^2 + 2.25*y^2 + z^2 - 1)^3 - x^2*z^3 - 0.1125*y^2*z^3" << endl;
+	cout << " ESC. 返回上级菜单" << endl;
+	cout << endl;
+
+	char childOption = _getch();
+	switch (childOption)
+	{
+	case '1':
+		f = &f1;
+		break;
+	case '2':
+		f = &f4;
+		break;
+	case '3':
+		f = &f3;
+		break;
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool childMenu2()
+{
+	cout << "===========================" << endl;
+	cout << "=         曲面重建         =" << endl;
+	cout << "===========================" << endl;
+	cout << "请选择需要重建的模型：" << endl;
+	cout << " 1. 球形" << endl;
+	cout << " 2. 蘑菇形" << endl;
+	cout << " 3. 心形" << endl;
+	cout << " ESC. 返回上级菜单" << endl;
+	cout << endl;
+
+	char childOption = _getch();
+	string s;
+
+	switch (childOption)
+	{
+	case '1':
+		s = "c";
+		break;
+	case '2':
+		s = "m";
+		break;
+	case '3':
+		s = "x";
+		break;
+	default:
+		return false;
+	}
+
+	fileName = "Resource\\vertices_" + s + ".txt";
+
+	return true;
+}
+
 void drawInit()
 {	
-	//MCmesh = new MC_Mesh<NUM_OF_CUBES>(&f4);
-	MCmesh = new PC_Mesh<NUM_OF_CUBES>("Resource\\vertices_m50.txt");
+	switch (menuOption)
+	{
+	case '1':
+		MCmesh = new MC_Mesh<NUM_OF_CUBES>(f, 1.0f);
+		break;
+	case '2':
+		MCmesh = new PC_Mesh<NUM_OF_CUBES>(fileName, 1.0f);
+		break;
+	default:
+		exit(1);
+	}
+
+	position = vec3(0.0f, 0.0f, 0.0f);
+	scaleSize = vec3(5.0f, 5.0f, 5.0f);
+	rotateX = rotateY = rotateZ = 0.0f;
+
 	HESmesh = MCmesh->getMesh();
-	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
+	//HESmesh = new HES_Mesh();
 	//HESmesh->readFromObj("Resource\\mannequin.obj");
+	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	HESmesh->setupMesh();
 	
 	shader = new Shader("Resource\\vShader.glsl", "Resource\\fShader.glsl");
-	shaderN = new Shader("Resource\\vShaderN.glsl", "Resource\\fShaderN.glsl");
 }
 
 void draw()
@@ -341,31 +448,6 @@ void draw()
 
 		HESmesh->drawMeshLine();
 	}
-	
-	if (drawNormalFlag)
-	{
-		shaderN->use();
-
-		mat4 model;
-		model = translate(model, position);
-		model = scale(model, scaleSize);
-		model = rotate(model, rotateX, vec3(1.0f, 0.0f, 0.0f));
-		model = rotate(model, rotateY, vec3(0.0f, 1.0f, 0.0f));
-		model = rotate(model, rotateZ, vec3(0.0f, 0.0f, 1.0f));
-
-		mat4 view = glm::lookAt(vec3(0.0f, 0.0f, 20.0f),
-			vec3(0.0f, 0.0f, -1.0f),
-			vec3(0.0f, 1.0f, 0.0f));
-
-		mat4 projection = glm::perspective(45.0f, (float)screenWidth / (float)screenHeight, 0.1f, 1000.f);
-
-		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(shaderN->program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-		glUniform4f(glGetUniformLocation(shaderN->program, "color"), 1.0f, 1.0f, 1.0f, 1.0f);
-		PCmesh->drawNormals();
-	}
 
 	glBindVertexArray(0);
 }
@@ -407,8 +489,8 @@ float f3(float x, float y, float z)
 float f4(float x, float y, float z)
 {
 	multiply(x, y, z, 2.0f);
-	return powf(x * x + y * y - 3.0f, 3.0f)
-		+ powf(z * z * z - 2.0f, 2.0f);
+	return powf(x * x + z * z - 3.0f, 3.0f)
+		+ powf(y * y * y - 2.0f, 2.0f);
 }
 
 void multiply(float & x, float & y, float & z, float p)

@@ -9,7 +9,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <glm\glm.hpp>
+
+#include "Third_party\include\glm\glm.hpp"
 
 using std::string;
 using glm::vec3;
@@ -58,6 +59,7 @@ const float INFINITY_F = *((float *)(&P_INFINITY_F_BITMAP));
 
 const float BOUNDING_BOX_THICK = 0.0f;
 const float BBOX_MIN_HALF_WIDTH = 0.0001f;
+const float NORMALIZE_MAX = 0.9f;
 
 class RBF_Func
 {
@@ -85,6 +87,7 @@ private:
 
 	BoundingBox * getBBox(RBF_PointNormal_List * pointNormals);
 	void cutBBox(BoundingBox * box);
+	void normalizeVetices(RBF_PointNormal_List * pointNormals, vec3 & max, vec3 & min);
 	void getPointNormal(RBF_PointNormal_List * pointNormals);
 	void spanningTreeTraversal(RBF_PointNormal_List * pointNormals, RBF_PointNormal_List & pointNormalsTemp, 
 		int xMaxIndex, int xMinIndex, int yMaxIndex, int yMinIndex, int zMaxIndex, int zMinIndex);
