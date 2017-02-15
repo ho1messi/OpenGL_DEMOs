@@ -1,10 +1,10 @@
-#include "PC_Normal.h"
+#include "..\include\PC_Normal.h"
 
 #include <cmath>
 #include <iostream>
 #include <ctime>
 
-#include "Third_party\include\Eigen\Dense"
+#include "..\third_party\include\Eigen\Dense"
 
 PC_Normal::PC_Normal() :
 	mPoints(), mpPointsf(), mPointKDTree(NULL)

@@ -9,8 +9,8 @@
 #include <vector>
 #include <map>
 
-#include "Third_party\include\gl\glew.h"
-#include "Third_party\include\glm\glm.hpp"
+#include "..\third_party\include\gl\glew.h"
+#include "..\third_party\include\glm\glm.hpp"
 
 using std::string;
 using glm::vec3;

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "Third_party\include\ANN\ANN.h"
+#include "..\third_party\include\ANN\ANN.h"
 
 class PC_Normal
 {

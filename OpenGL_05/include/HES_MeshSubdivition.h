@@ -1,6 +1,8 @@
 #ifndef __HES_MESH_SUBDIVITION_H__
 #define __HES_MESH_SUBDIVITION_H__
 
+#include "HES_Mesh.h"
+
 typedef std::vector<HES_Mesh *> HES_Mesh_List;
 typedef HES_Mesh_List::iterator HES_Mesh_Iterator;
 

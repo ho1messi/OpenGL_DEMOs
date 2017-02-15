@@ -1,5 +1,5 @@
-#include "HES_Mesh.h"
-#include "HES_MeshSubdivition.h"
+#include "..\include\HES_Mesh.h"
+#include "..\include\HES_MeshSubdivition.h"
 
 HES_MeshSubdivition::HES_MeshSubdivition() :
 	mHESMeshList()

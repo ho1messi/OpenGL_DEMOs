@@ -1,10 +1,10 @@
-#include "RBF_Func.h"
+#include "..\include\RBF_Func.h"
 
 #include <cmath>
 #include <fstream>
 #include <iostream>
 
-#include "Third_party\include\Eigen\Dense"
+#include "..\third_party\include\Eigen\Dense"
 
 using std::cout;
 using std::endl;
@@ -635,7 +635,7 @@ float RBF_Func::vec3DisModuleCube(const vec3 & point1, const vec3 & point2)
 
 void RBF_Func::writeNormals(RBF_PointNormal_List *pointNormals)
 {
-	std::ofstream fileOut("Resource\\normals_out.txt");
+	std::ofstream fileOut("resource\\normals_out.txt");
 
 	vec3 *point, *normal;
 	PointAndNormal *pointNormal;

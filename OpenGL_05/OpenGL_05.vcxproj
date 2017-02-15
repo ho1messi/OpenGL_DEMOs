@@ -127,26 +127,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HES_Mesh.cpp" />
-    <ClCompile Include="HES_MeshSubdivition.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PC_Normal.cpp" />
-    <ClCompile Include="RBF_Func.cpp" />
-    <ClCompile Include="Table.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="HES_Mesh.h" />
-    <ClInclude Include="HES_MeshSubdivition.h" />
-    <ClInclude Include="MC_Mesh.h" />
-    <ClInclude Include="MC_Mesh_Base.h" />
-    <ClInclude Include="PC_Mesh.h" />
-    <ClInclude Include="PC_Normal.h" />
-    <ClInclude Include="RBF_Func.h" />
-    <ClInclude Include="shader.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resource\fShader.glsl" />
     <None Include="Resource\vShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\HES_Mesh.h" />
+    <ClInclude Include="include\HES_MeshSubdivition.h" />
+    <ClInclude Include="include\MC_Mesh.h" />
+    <ClInclude Include="include\MC_Mesh_Base.h" />
+    <ClInclude Include="include\PC_Mesh.h" />
+    <ClInclude Include="include\PC_Normal.h" />
+    <ClInclude Include="include\RBF_Func.h" />
+    <ClInclude Include="include\shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\HES_Mesh.cpp" />
+    <ClCompile Include="src\HES_MeshSubdivition.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\PC_Normal.cpp" />
+    <ClCompile Include="src\RBF_Func.cpp" />
+    <ClCompile Include="src\Table.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

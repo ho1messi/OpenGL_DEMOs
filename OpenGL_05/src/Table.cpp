@@ -1,4 +1,4 @@
-#include "MC_Mesh.h"
+#include "..\include\MC_Mesh.h"
 
 const int edgeTable[12][6] = 
 {

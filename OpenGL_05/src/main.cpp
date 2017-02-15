@@ -1,7 +1,7 @@
 #pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, ".\\Third_party\\lib\\glfw3.lib")
-#pragma comment(lib, ".\\Third_party\\lib\\glew32s.lib")
-#pragma comment(lib, ".\\Third_party\\lib\\ANN.lib")
+#pragma comment(lib, ".\\third_party\\lib\\glfw3.lib")
+#pragma comment(lib, ".\\third_party\\lib\\glew32s.lib")
+#pragma comment(lib, ".\\third_party\\lib\\ANN.lib")
 
 //	STD		include
 #include <iostream>
@@ -12,23 +12,23 @@
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
 #endif
-#include "Third_party\include\GL\glew.h"
+#include "..\third_party\include\GL\glew.h"
 
 //	GLFW	include
-#include "Third_party\include\GLFW\glfw3.h"
+#include "..\third_party\include\GLFW\glfw3.h"
 
 //	GLM		include
-#include "Third_party\include\glm\glm.hpp"
-#include "Third_party\include\glm\gtc\matrix_transform.hpp"
-#include "Third_party\include\glm\gtc\type_ptr.hpp"
+#include "..\third_party\include\glm\glm.hpp"
+#include "..\third_party\include\glm\gtc\matrix_transform.hpp"
+#include "..\third_party\include\glm\gtc\type_ptr.hpp"
 
 //	MY		include
-#include "shader.h"
-#include "HES_Mesh.h"
-#include "HES_MeshSubdivition.h"
-#include "MC_Mesh.h"
-#include "PC_Mesh.h"
-#include "PC_Normal.h"
+#include "..\include\shader.h"
+#include "..\include\HES_Mesh.h"
+#include "..\include\HES_MeshSubdivition.h"
+#include "..\include\MC_Mesh.h"
+#include "..\include\PC_Mesh.h"
+#include "..\include\PC_Normal.h"
 
 using glm::vec3;
 using glm::vec4;
@@ -187,7 +187,7 @@ void key_callback(GLFWwindow *window, int key, int scanCode, int action, int mod
 
 	if (key == GLFW_KEY_W && action == GLFW_PRESS)
 	{
-		HESmesh->writeToFile("Resource\\vertices_out.txt");
+		HESmesh->writeToFile("resource\\vertices_out.txt");
 		cout << "Writting vertices to file done" << endl;
 	}
 }
@@ -349,7 +349,7 @@ bool childMenu2()
 		return false;
 	}
 
-	fileName = "Resource\\vertices_" + s + ".txt";
+	fileName = "resource\\vertices_" + s + ".txt";
 
 	return true;
 }
@@ -374,11 +374,11 @@ void drawInit()
 
 	HESmesh = MCmesh->getMesh();
 	//HESmesh = new HES_Mesh();
-	//HESmesh->readFromObj("Resource\\mannequin.obj");
+	//HESmesh->readFromObj("resource\\mannequin.obj");
 	HESmeshSubdivition = new HES_MeshSubdivition(HESmesh);
 	HESmesh->setupMesh();
 	
-	shader = new Shader("Resource\\vShader.glsl", "Resource\\fShader.glsl");
+	shader = new Shader("resource\\vShader.glsl", "resource\\fShader.glsl");
 }
 
 void draw()

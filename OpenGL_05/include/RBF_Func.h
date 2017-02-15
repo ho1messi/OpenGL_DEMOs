@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "Third_party\include\glm\glm.hpp"
+#include "..\third_party\include\glm\glm.hpp"
 
 using std::string;
 using glm::vec3;

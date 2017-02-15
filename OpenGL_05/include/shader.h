@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "Third_party\include\GL/glew.h"
+#include "..\third_party\include\GL\glew.h"
 
 class Shader
 {

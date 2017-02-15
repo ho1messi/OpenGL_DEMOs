@@ -15,57 +15,57 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="HES_Mesh.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="HES_MeshSubdivition.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Table.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="RBF_Func.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PC_Normal.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="shader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="HES_Mesh.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="HES_MeshSubdivition.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="MC_Mesh.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PC_Mesh.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="RBF_Func.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="MC_Mesh_Base.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PC_Normal.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resource\fShader.glsl">
       <Filter>资源文件</Filter>
     </None>
     <None Include="Resource\vShader.glsl">
       <Filter>资源文件</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\HES_Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HES_MeshSubdivition.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MC_Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MC_Mesh_Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PC_Mesh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PC_Normal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\RBF_Func.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\HES_Mesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HES_MeshSubdivition.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PC_Normal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RBF_Func.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Table.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
