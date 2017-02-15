@@ -244,3 +244,4 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 /OpenGL_05/test
+/OpenGL_DEMOs/test

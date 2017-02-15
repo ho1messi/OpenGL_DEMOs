@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resource\fShader.glsl">
+    <None Include="resource\fShader.glsl">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="Resource\vShader.glsl">
+    <None Include="resource\vShader.glsl">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
